@@ -1,33 +1,59 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title><%= title %></title>
-    </head>
-    <body>
-        <center>
-            <h1><%= title %></h1>
-            <% if (users.length > 0) { %>
-                <table border="1" cellpadding="8">
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Actions</th>
-                        </tr>
-                        <% users.forEach(user => { %>
-                        <tr>
-                        <td><%= user.name %></td>
-                        <td><%= user.email %></td>
-                        <td>
-                        <a href="/users/edit/<%= user._id %>">Edit</a>
-                        </td>
-                        </tr>
-                        <% }) %>
-                </table>
-            <% } else { %>
-                <p>No users registered yet.</p>
-            <% } %>
-            <p><a href="/users/register">Register another user</a></p>
-            
-        </center>
-    </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Global Styles -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <%- include('partials/navbar', { activePage: 'list' }) %>
+
+  <div class="container my-5">
+    <div class="glass-card">
+      <h1 class="text-center mb-4"><%= title %></h1>
+
+      <% if (users.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-dark table-hover align-middle rounded overflow-hidden">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Email</th>
+                <th scope="col" class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% users.forEach(user => { %>
+                <tr>
+                  <td><%= user.name %></td>
+                  <td><%= user.email %></td>
+                  <td class="text-center">
+                    <a href="/users/edit/<%= user._id %>" class="btn btn-sm btn-warning me-2">Edit</a>
+                    <form action="/users/delete/<%= user._id %>" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <p class="text-center">No users registered yet.</p>
+      <% } %>
+
+      <div class="text-center mt-4">
+        <a href="/users/register" class="btn-custom">Register another user</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>

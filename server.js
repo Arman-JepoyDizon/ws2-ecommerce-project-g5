@@ -33,4 +33,5 @@ async function main() {
         console.error("MongoDB connection failed", err);
     }
 }
+app.use(express.static('public'));
 main();

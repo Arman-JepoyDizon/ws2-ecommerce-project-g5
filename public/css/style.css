@@ -1,0 +1,105 @@
+body {
+  background: linear-gradient(135deg, #0f0f0f, #1c1c1c);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #f0f0f0;
+}
+
+.navbar {
+  backdrop-filter: blur(10px);
+  background: rgba(20, 20, 20, 0.8);
+}
+
+.glass-card {
+  background: rgba(30, 30, 30, 0.7);
+  border-radius: 20px;
+  padding: 2rem;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  margin: auto;
+  max-width: 600px;
+  width: 100%;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+p {
+  font-size: 1.1rem;
+  color: #dcdcdc;
+}
+
+.form-label {
+  color: #dcdcdc;
+}
+
+.form-control {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  border-radius: 12px;
+}
+
+.form-control:focus {
+  background: rgba(255, 255, 255, 0.15);
+  outline: none;
+  box-shadow: 0 0 0 2px #4a90e2;
+}
+
+.btn-custom {
+  background: linear-gradient(135deg, #4a90e2, #357abd);
+  border: none;
+  color: white;
+  padding: 0.7rem 1.5rem;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  width: 100%;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-custom:hover {
+  background: linear-gradient(135deg, #5aa4ff, #3f8dd6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.link-custom {
+  display: block;
+  margin-top: 1rem;
+  text-align: center;
+  color: #9ecaff;
+  text-decoration: none;
+}
+
+.link-custom:hover {
+  text-decoration: underline;
+  color: #c5dcff;
+}
+
+/* Input fields */
+input, textarea, select {
+  background: rgba(255, 255, 255, 0.05) !important; /* glassy input */
+  color: #fff !important; /* white text */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+/* Placeholder text */
+input::placeholder, textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6); /* softer white */
+}
+
+/* Input focus effect */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #6a5acd; /* purple glow */
+  box-shadow: 0 0 10px rgba(106, 90, 205, 0.6);
+}

@@ -12,7 +12,10 @@ const dbName = "ecommerceDB";
 
 // Show registration form
 router.get('/register', (req, res) => {
-    res.render('register', { title: "Register" });
+    res.render('register', { 
+        title: "Register",
+        success: req.query.success === '1'
+    });
 });
 // Handle form submission
 router.post('/register', async (req, res) => {
@@ -20,20 +23,23 @@ router.post('/register', async (req, res) => {
         await client.connect();
         const db = client.db(dbName);
         const usersCollection = db.collection('users');
-        // Get form data
+
         const newUser = {
             name: req.body.name,
             email: req.body.email,
             password: req.body.password
         };
-        // Insert into MongoDB
+
         await usersCollection.insertOne(newUser);
-        res.send("User registered successfully!");
+
+        // Instead of res.send, redirect with a success flag
+        res.redirect('/users/register?success=1');
     } catch (err) {
         console.error("Error saving user:", err);
-        res.send("Something went wrong.");
+        res.redirect('/users/register?error=1');
     }
 });
+
 //Show all registered users
 router.get('/list', async (req, res) => {
     try {
@@ -82,5 +88,19 @@ res.redirect('/users/list');
 console.error("Error updating user:", err);
 res.send("Something went wrong.");
 }
+});
+// Delete User
+router.post('/delete/:id', async (req, res) => {
+    try {
+    await client.connect();
+        const db = client.db(dbName);
+        const usersCollection = db.collection('users');
+
+        await usersCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+        res.redirect('/users/list');
+    } catch (err) {
+        console.error("Error deleting user:", err);
+        res.send("Something went wrong.");
+    }
 });
 module.exports = router;
