@@ -2,6 +2,9 @@
 
 const express = require('express');
 const router = express.Router();
+const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcrypt');
+const saltRounds = 12;
 const { MongoClient } = require('mongodb');
 require('dotenv').config();
 
@@ -10,35 +13,52 @@ const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
 const dbName = "ecommerceDB";
 
-// Show registration form
-router.get('/register', (req, res) => {
-    res.render('register', { 
-        title: "Register",
-        success: req.query.success === '1'
-    });
-});
-// Handle form submission
-router.post('/register', async (req, res) => {
+//Registration (POST)
+router.post('/register', async (req, res) =>{
     try {
-        await client.connect();
-        const db = client.db(dbName);
+        const db = req.app.client.db(req.app.dbName);
         const usersCollection = db.collection('users');
 
+        //check if email already exists
+        const existingUser = await usersCollection.findOne({
+            email:req.body.email
+        });
+        if (existingUser) return res.send("User already exists with this email!");
+
+        //Hashing Password
+        const hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
+        const currentDate = new Date();
+
+        //Build new user object
         const newUser = {
-            name: req.body.name,
+            userId: uuidv4(),
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
             email: req.body.email,
-            password: req.body.password
+            passwordHash: hashedPassword,
+            role: 'customer',
+            accountStatus: 'active',
+            isEmailVerified: false,
+            createdAt: currentDate,
+            updatedAt: currentDate
         };
 
+        //Insert into MongoDB
         await usersCollection.insertOne(newUser);
+        res.send(`
+            <h2>Registration Successful!</h2>
 
-        // Instead of res.send, redirect with a success flag
-        res.redirect('/users/register?success=1');
+            <p>User ${newUser.firstName} ${newUser.lastName} registered with ID:
+            
+            ${newUser.userId}</p>
+            
+            <a href="/users/login">Proceed to Login</a>
+        `);
     } catch (err) {
         console.error("Error saving user:", err);
-        res.redirect('/users/register?error=1');
+        res.send("Something went wrong.");
     }
-});
+})
 
 //Show all registered users
 router.get('/list', async (req, res) => {

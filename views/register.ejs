@@ -18,8 +18,13 @@
       <h1>User Registration</h1>
       <form action="/users/register" method="POST">
         <div class="mb-3">
-          <label for="name" class="form-label">Name</label>
-          <input type="text" name="name" id="name" class="form-control" required>
+          <label for="firstName" class="form-label">First Name: </label>
+          <input type="text" name="firstName" id="firstName" class="form-control">
+        </div>
+
+        <div class="mb-3">
+          <label for="lastName" class="form-label">Last Name: </label>
+          <input type="text" name="lastName" id="lastName" class="form-control">
         </div>
 
         <div class="mb-3">
