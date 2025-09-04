@@ -8,6 +8,8 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
+//This is so that every view can access whether a user is logged in or not. 
+
 //Session Startup
 app.use(session({
     secret: process.env.SESSION_SECRET || 'dev-secret', // keep secret in .env
@@ -39,5 +41,9 @@ async function main() {
         console.error("MongoDB connection failed", err);
     }
 }
+app.use((req, res, next) => {
+    res.locals.user = req.session.user || null;
+    next();
+});
 app.use(express.static('public'));
 main();

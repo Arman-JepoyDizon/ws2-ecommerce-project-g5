@@ -6,9 +6,28 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link <%= activePage === 'home' ? 'active' : '' %>" href="/">Home</a></li>
-        <li class="nav-item"><a class="nav-link <%= activePage === 'register' ? 'active' : '' %>" href="/users/register">Register</a></li>
-        <li class="nav-item"><a class="nav-link <%= activePage === 'users' ? 'active' : '' %>" href="/users/list">Users</a></li>
+
+        <% if (!locals.user) { %>
+          <!-- Guest links -->
+          <li class="nav-item">
+            <a class="nav-link <%= activePage === 'home' ? 'active' : '' %>" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= activePage === 'register' ? 'active' : '' %>" href="/users/register">Register</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= activePage === 'login' ? 'active' : '' %>" href="/users/login">Login</a>
+          </li>
+        <% } else { %>
+          <!-- Logged-in links -->
+          <li class="nav-item">
+            <a class="nav-link <%= activePage === 'dashboard' ? 'active' : '' %>" href="/users/dashboard">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/users/logout">Logout</a>
+          </li>
+        <% } %>
+
       </ul>
     </div>
   </div>

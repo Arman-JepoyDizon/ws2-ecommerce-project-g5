@@ -13,6 +13,11 @@ const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
 const dbName = "ecommerceDB";
 
+//Show Registration Form
+router.get('/register', redirectLoggedInUsers, (req, res) => {
+    res.render('register', {title: "Register"});
+});
+
 //Registration (POST)
 router.post('/register', async (req, res) =>{
     try {
@@ -59,6 +64,83 @@ router.post('/register', async (req, res) =>{
         res.send("Something went wrong.");
     }
 })
+
+//Show Login Form
+router.get('/login', redirectLoggedInUsers, (req, res) => {
+    res.render('login', {title: "Login"});
+});
+
+
+//Handle Login form submission
+router.post('/login', async (req, res) => {
+    try {
+        const db = req.app.client.db(req.app.dbName);
+        const usersCollection = db.collection('users');
+
+        //Find user by email
+        const user = await usersCollection.findOne({ email: req.body.email});
+        if (!user) return res.send("User not found.");
+
+        //Check if account is active
+        if (user.accountStatus !== 'active') return res.send("Accoiunt is not active.");
+
+        //Compare Hashed Password
+        const isPasswordvalid = await bcrypt.compare(req.body.password, user.passwordHash);
+        if (isPasswordvalid) {
+            //Store Session (Yipieee)
+            req.session.user = {
+                userId: user.userId,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role
+            };
+            res.redirect('/users/dashboard');
+        } else {
+            res.send("Invalid Password.");
+        }
+    } catch (err) {
+        console.error("Error during login: ", err);
+        res.send("Something went wrong.");
+    }
+})
+
+//Dashboard route
+router.get('/dashboard', (req, res) => {
+    if(!req.session.user) return res.redirect('/users/login');
+    res.render('dashboard', {title: 'User Dashboard', user : req.session.user});
+});
+
+//Logout
+router.get('/logout', (req,res) => {
+    req.session.destroy();
+    res.redirect('/users/login');
+});
+
+//Admin View
+router.get('/admin', async(req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(403).send("Access Denied!");
+    }
+
+    const db = req.app.client.db(req.app.dbName);
+    const users = await db.collection('users').find().toArray();
+
+    res.render('admin', {
+        title: "Admin Dashboard", 
+        users,
+        currentUser: req.session.user
+    });
+});
+
+//Function to throw back users into dashboard if they are logged in.
+function redirectLoggedInUsers(req, res, next) {
+    if (req.session.user) {
+        return res.redirect('/users/dashboard');
+    }
+    next();
+};
+
 
 //Show all registered users
 router.get('/list', async (req, res) => {
