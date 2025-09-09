@@ -102,7 +102,7 @@ router.post('/register', async (req, res) =>{
 // Email Verification Route
 router.get('/verify/:token', async (req, res) => {
     try {
-        const db = req.app.locals.client.db(req.app.locals.dbName);
+        const db = req.app.client.db(req.app.dbName);
         const usersCollection = db.collection('users');
         // 1. Find user by token
         const user = await usersCollection.findOne({ verificationToken: req.params.token });
