@@ -73,7 +73,7 @@ router.post('/register', async (req, res) =>{
             process.env.BREVO_API_KEY
         );
         const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-        const verificationUrl = `${baseUrl}/users/verify/${token}`;
+        const verificationUrl = `${baseUrl}users/verify/${token}`;
 
         // Send email using Brevo
         const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
@@ -90,7 +90,7 @@ router.post('/register', async (req, res) =>{
 
         res.send(`
                 <script>
-                    alert("Registered Successfully. Please check your email to verify your account. Verification will expire in 5 minutes.");
+                    alert("Registered Successfully. Please check your email to verify your account. Verification will expire in 5 minutes."); window.history.back();
                 </script>
             `);
     } catch (err) {
@@ -98,6 +98,38 @@ router.post('/register', async (req, res) =>{
         res.send("Something went wrong.");
     }
 })
+
+// Email Verification Route
+router.get('/verify/:token', async (req, res) => {
+    try {
+        const db = req.app.locals.client.db(req.app.locals.dbName);
+        const usersCollection = db.collection('users');
+        // 1. Find user by token
+        const user = await usersCollection.findOne({ verificationToken: req.params.token });
+        // 2. Check if token exists
+        if (!user) {
+            return res.send("Invalid or expired verification link.");
+        }
+        // 3. Check if token is still valid
+        if (user.tokenExpiry < new Date()) {
+            return res.send("Verification link has expired. Please register again.");
+        }
+        // 4. Update user as verified
+        await usersCollection.updateOne(
+            { verificationToken: req.params.token },
+            { $set: { isEmailVerified: true }, $unset: { verificationToken: "", tokenExpiry:"" } }
+        );
+        res.send(`
+            <h2>Email Verified!</h2>
+            <p>Your account has been verified successfully.</p>
+            <a href="/users/login">Proceed to Login</a>
+        `);
+    } catch (err) {
+        console.error("Error verifying user:", err);
+        res.send("Something went wrong during verification.");
+    }
+});
+
 
 //Show Login Form
 router.get('/login', redirectLoggedInUsers, (req, res) => {
