@@ -16,6 +16,7 @@
   <div class="d-flex flex-grow-1 justify-content-center align-items-center">
     <div class="glass-card w-100" style="max-width: 600px;">
       <h1 class="mb-4">Welcome, <%= user.firstName %> <%= user.lastName %>!</h1>
+      <p><strong>Email Verified:</strong> <%= user.isEmailVerified ? "Yes" : "No" %></p>
       
       <ul class="list-group mb-4">
         <li class="list-group-item"><strong>User ID:</strong> <%= user.userId %></li>

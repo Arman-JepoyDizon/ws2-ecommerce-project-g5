@@ -8,10 +8,15 @@ const saltRounds = 12;
 const { MongoClient } = require('mongodb');
 require('dotenv').config();
 
+
 //MongoDB Setup
 const uri = process.env.MONGO_URI;
 const client = new MongoClient(uri);
 const dbName = "ecommerceDB";
+
+//Brevo
+const SibApiV3Sdk = require('@getbrevo/brevo');
+
 
 //Show Registration Form
 router.get('/register', redirectLoggedInUsers, (req, res) => {
@@ -23,42 +28,71 @@ router.post('/register', async (req, res) =>{
     try {
         const db = req.app.client.db(req.app.dbName);
         const usersCollection = db.collection('users');
-
-        //check if email already exists
+        
+        //1. Check if user already exists by email.
+        
         const existingUser = await usersCollection.findOne({
             email:req.body.email
         });
-        if (existingUser) return res.send("User already exists with this email!");
+        if (existingUser) {
+            return res.send(`<script>alert("User already exists with this email!"); window.history.back();</script>`);
+        }
 
-        //Hashing Password
+
+        //2. Hashing Password
         const hashedPassword = await bcrypt.hash(req.body.password, saltRounds);
         const currentDate = new Date();
 
-        //Build new user object
+        //3. Create verification token
+        const token = uuidv4();
+
+        //4. Build new user object
         const newUser = {
-            userId: uuidv4(),
-            firstName: req.body.firstName,
+            userId: uuidv4(), // unique ID for the user
+            firstName: req.body.firstName, // from form input
             lastName: req.body.lastName,
             email: req.body.email,
-            passwordHash: hashedPassword,
-            role: 'customer',
+            passwordHash: hashedPassword, // never store plain text password
+            role: 'customer', // default role
             accountStatus: 'active',
-            isEmailVerified: false,
+            isEmailVerified: false, // must be verified before login
+            verificationToken: token, // link user to verification
+            tokenExpiry: new Date(Date.now() + 3600000), // expires in 1 hour
             createdAt: currentDate,
             updatedAt: currentDate
         };
 
-        //Insert into MongoDB
+        //5. Insert into MongoDB
         await usersCollection.insertOne(newUser);
+        // Build verification URL
+        const SibApiV3Sdk = require('@getbrevo/brevo');
+
+        const brevoTransEmailApi = new SibApiV3Sdk.TransactionalEmailsApi();
+        brevoTransEmailApi.setApiKey(
+            SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
+            process.env.BREVO_API_KEY
+        );
+        const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+        const verificationUrl = `${baseUrl}/users/verify/${token}`;
+
+        // Send email using Brevo
+        const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+        sendSmtpEmail.sender = { email: process.env.BREVO_FROM_EMAIL, name: "Ecommerce App" };
+        sendSmtpEmail.to = [{ email: newUser.email, name: `${newUser.firstName} ${newUser.lastName}` }];
+        sendSmtpEmail.subject = "Verify your account";
+        sendSmtpEmail.htmlContent = `
+        <h2>Welcome, ${newUser.firstName}!</h2>
+        <p>Please verify your email by clicking the link below:</p>
+        <a href="${verificationUrl}">${verificationUrl}</a>
+        `;
+
+        await brevoTransEmailApi.sendTransacEmail(sendSmtpEmail);
+
         res.send(`
             <h2>Registration Successful!</h2>
-
-            <p>User ${newUser.firstName} ${newUser.lastName} registered with ID:
-            
-            ${newUser.userId}</p>
-            
-            <a href="/users/login">Proceed to Login</a>
-        `);
+            <p>User created successfully. Please check your email to verify.</p>
+            <a href="/users/login">Go to Login</a>
+            `);
     } catch (err) {
         console.error("Error saving user:", err);
         res.send("Something went wrong.");
@@ -83,7 +117,9 @@ router.post('/login', async (req, res) => {
 
         //Check if account is active
         if (user.accountStatus !== 'active') return res.send("Accoiunt is not active.");
-
+        if (!user.isEmailVerified) {
+            return res.send("Please verify your email before logging in.");
+        }
         //Compare Hashed Password
         const isPasswordvalid = await bcrypt.compare(req.body.password, user.passwordHash);
         if (isPasswordvalid) {
@@ -105,11 +141,24 @@ router.post('/login', async (req, res) => {
     }
 })
 
-//Dashboard route
-router.get('/dashboard', (req, res) => {
-    if(!req.session.user) return res.redirect('/users/login');
-    res.render('dashboard', {title: 'User Dashboard', user : req.session.user});
+//Dashboard route (fetch fresh user from DB)
+router.get('/dashboard', async (req, res) => {
+    if (!req.session.user) return res.redirect('/users/login');
+
+    const db = req.app.client.db(req.app.dbName);
+    const usersCollection = db.collection('users');
+
+    // Always pull the latest user data from MongoDB
+    const user = await usersCollection.findOne({ email: req.session.user.email });
+
+    if (!user) {
+        req.session.destroy(); // safety: if user was deleted
+        return res.redirect('/users/login');
+    }
+
+    res.render('dashboard', { title: 'User Dashboard', user });
 });
+
 
 //Logout
 router.get('/logout', (req,res) => {
@@ -140,6 +189,7 @@ function redirectLoggedInUsers(req, res, next) {
     }
     next();
 };
+
 
 
 //Show all registered users
