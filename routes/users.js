@@ -73,7 +73,7 @@ router.post('/register', async (req, res) =>{
             process.env.BREVO_API_KEY
         );
         const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-        const verificationUrl = `${baseUrl}users/verify/${token}`;
+        const verificationUrl = `${baseUrl}/users/verify/${token}`;
 
         // Send email using Brevo
         const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
