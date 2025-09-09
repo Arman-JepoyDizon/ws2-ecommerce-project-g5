@@ -77,7 +77,7 @@ router.post('/register', async (req, res) =>{
 
         // Send email using Brevo
         const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-        sendSmtpEmail.sender = { email: process.env.BREVO_FROM_EMAIL, name: "Ecommerce App" };
+        sendSmtpEmail.sender = { email: process.env.BREVO_FROM_EMAIL, name: "Tagalog-Visakol-Ecommerce" };
         sendSmtpEmail.to = [{ email: newUser.email, name: `${newUser.firstName} ${newUser.lastName}` }];
         sendSmtpEmail.subject = "Verify your account";
         sendSmtpEmail.htmlContent = `
@@ -89,9 +89,9 @@ router.post('/register', async (req, res) =>{
         await brevoTransEmailApi.sendTransacEmail(sendSmtpEmail);
 
         res.send(`
-            <h2>Registration Successful!</h2>
-            <p>User created successfully. Please check your email to verify.</p>
-            <a href="/users/login">Go to Login</a>
+                <script>
+                    alert("Registered Successfully. Please check your email to verify your account. Verification will expire in 5 minutes.");
+                </script>
             `);
     } catch (err) {
         console.error("Error saving user:", err);
