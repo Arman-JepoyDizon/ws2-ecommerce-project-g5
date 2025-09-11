@@ -174,7 +174,7 @@ router.post('/login', async (req, res) => {
 })
 
 //Dashboard route (fetch fresh user from DB)
-router.get('/dashboard', async (req, res) => {
+router.get('/dashboard', checkSessionTimeout, async (req, res) => {
     if (!req.session.user) return res.redirect('/users/login');
 
     const db = req.app.client.db(req.app.dbName);
@@ -193,13 +193,25 @@ router.get('/dashboard', async (req, res) => {
 
 
 //Logout
-router.get('/logout', (req,res) => {
-    req.session.destroy();
-    res.redirect('/users/login');
+router.get('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            console.log(err);
+        }
+        // Redirect to login with query flag
+        res.redirect('/users/login?logout=1');
+    });
 });
 
+function checkSessionTimeout(req, res, next) {
+    if (!req.session.user) {
+        return res.redirect('/users/login?timeout=1');
+    }
+    next();
+}
+
 //Admin View
-router.get('/admin', async(req, res) => {
+router.get('/admin', checkSessionTimeout, async(req, res) => {
     if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(403).send("Access Denied!");
     }

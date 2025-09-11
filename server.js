@@ -15,8 +15,12 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'dev-secret', // keep secret in .env
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // set true in production with HTTPS
+    cookie: { 
+        secure: false,
+        maxAge: 1 * 60 * 1000 
+    } // set true in production with HTTPS
 }));
+
 
 //Routes
 const indexRoute = require('./routes/index');
