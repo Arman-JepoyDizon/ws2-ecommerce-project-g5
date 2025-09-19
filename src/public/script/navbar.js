@@ -10,9 +10,11 @@ window.addEventListener('scroll', () => {
   if (!isExpanded) {
     if (currentScroll > lastScroll) {
       // scrolling down -> hide
-      navbar.style.top = '-80px';
+      navbar.classList.remove('show');
+      navbar.style.top = '-100px';
     } else {
       // scrolling up -> show
+      navbar.classList.add('show');
       navbar.style.top = '0';
     }
   }

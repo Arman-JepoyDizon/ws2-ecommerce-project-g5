@@ -1,6 +1,6 @@
 body {
   font-family: "Helvetica Neue", Arial, sans-serif;
-  padding-top: 60px;
+  padding-top: 90px;
 }
 
 /* Make navbar fixed and smooth transition */
@@ -9,11 +9,11 @@ body {
   top: 0;
   width: 100%;
   z-index: 1000;
-  transition: top 0.4s ease; /* default slow hide */
+  transition: top 0.8s ease; /* default slow hide */
 }
 
 .navbar.show {
-  transition: top 0.1s; /* faster show */
+  transition: top 0.2s; /* faster show */
 }
 
 
