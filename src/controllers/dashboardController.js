@@ -8,7 +8,7 @@ exports.getCustomerDashboard = (req, res) => {
 exports.getAdminDashboard = async (req, res) => {
   const user = req.session.user;
   if (user.role !== "admin") {
-    return res.redirect("/dashboard");
+    return res.redirect("/dashboard/customer");
   }
 
   const db = req.app.locals.db;

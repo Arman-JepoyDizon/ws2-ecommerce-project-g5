@@ -10,7 +10,7 @@ function ensureAuth(req, res, next) {
   next();
 }
 
-router.get("/", ensureAuth, dashboardController.getCustomerDashboard);
+router.get("/customer", ensureAuth, dashboardController.getCustomerDashboard);
 router.get("/admin", ensureAuth, dashboardController.getAdminDashboard);
 
 module.exports = router;

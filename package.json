@@ -1,4 +1,11 @@
 {
+  "name": "onlyfreds",
+  "version": "1.0.0",
+  "description": "OnlyFreds - parody e-commerce app",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
   "dependencies": {
     "@getbrevo/brevo": "^3.0.1",
     "bcrypt": "^6.0.0",
@@ -10,7 +17,9 @@
     "mongodb": "^6.19.0",
     "uuid": "^11.1.0"
   },
-"scripts": {
-  "start": "node src/server.js"
-}
+  "engines": {
+    "node": "20.x"
+  },
+  "author": "",
+  "license": "ISC"
 }

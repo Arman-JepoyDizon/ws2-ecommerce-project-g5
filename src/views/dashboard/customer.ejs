@@ -11,16 +11,20 @@
   <%- include("../partials/navbar") %>
 
   <div class="container py-5">
-    <h2 class="mb-4">Hello, <%= user.name %> 👋</h2>
-    <ul class="list-group mb-4">
-      <li class="list-group-item"><strong>User ID:</strong> <%= user.userId %></li>
-      <li class="list-group-item"><strong>Email:</strong> <%= user.email %></li>
-      <li class="list-group-item"><strong>Role:</strong> <%= user.role %></li>
-      <li class="list-group-item"><strong>Status:</strong> Active</li>
-    </ul>
+    <h2 class="mb-4 text-center text-md-start">Hello, <%= user.name %> 👋</h2>
+    
+    <div class="card shadow-sm mb-4">
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item"><strong>User ID:</strong> <%= user.userId %></li>
+        <li class="list-group-item"><strong>Email:</strong> <%= user.email %></li>
+        <li class="list-group-item"><strong>Role:</strong> <%= user.role %></li>
+        <li class="list-group-item"><strong>Status:</strong> Active</li>
+      </ul>
+    </div>
   </div>
 
   <%- include("../partials/footer") %>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/script/navbar.js"></script>
 </body>
 </html>
