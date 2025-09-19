@@ -53,7 +53,7 @@ exports.postRegister = async (req, res) => {
 
     // Send email via Brevo
     const emailData = {
-      sender: { email: "20237660@s.ubaguio.edu", name: "OnlyFreds" },
+      sender: { email: "20237660@onlyfreds.fun", name: "OnlyFreds" },
       to: [{ email }],
       subject: "Verify your OnlyFreds account",
       htmlContent: `
