@@ -84,6 +84,14 @@ async function initDB() {
     const dashboardRoutes = require("./routes/dashboard");
     app.use("/dashboard", dashboardRoutes);
 
+    app.use((req, res) => {
+      res.status(404).render('404', {title:'Page not Found'});
+    });
+    app.use((req, res) => {
+      console.error(err)
+      res.status(500).render('404', {title: 'Server Error'});
+    });
+
 
     // --- Start Server ---
     app.listen(PORT, "0.0.0.0", () => {
