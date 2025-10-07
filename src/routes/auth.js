@@ -10,6 +10,7 @@ router.post("/register", authController.postRegister);
 router.get("/verify/:token", authController.verifyEmail);
 
 // Login
+
 router.get("/login", authController.getLogin);
 router.post("/login", authController.postLogin);
 

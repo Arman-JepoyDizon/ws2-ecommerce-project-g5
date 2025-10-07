@@ -1,3 +1,4 @@
+const verifyTurnstile = require("../utils/turnstileVerify");
 const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require("uuid");
 const SibApiV3Sdk = require("@getbrevo/brevo");
@@ -17,7 +18,11 @@ exports.getRegister = (req, res) => {
 exports.postRegister = async (req, res) => {
   const db = req.app.locals.db;
   const users = db.collection("users");
-
+  const token = req.body['cf-turnstile-response'];
+  const result = await verifyTurnstile(token, req.ip);
+  if (!result.success) {
+    return res.status(400).render('auth/register', { error: 'Verification failed. Please try again.' });
+  }
   const { firstName, lastName, email, password } = req.body;
 
   try {
@@ -111,7 +116,11 @@ exports.getLogin = (req, res) => {
 exports.postLogin = async (req, res) => {
   const db = req.app.locals.db;
   const users = db.collection("users");
-
+  const token = req.body['cf-turnstile-response'];
+  const result = await verifyTurnstile(token, req.ip);
+  if (!result.success) {
+    return res.status(400).render('auth/login', { error: 'Verification failed. Please try again.' });
+  }
   const { email, password } = req.body;
 
   const user = await users.findOne({ email });

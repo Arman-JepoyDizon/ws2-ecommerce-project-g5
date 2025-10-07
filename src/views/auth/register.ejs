@@ -34,11 +34,13 @@
         <label>Password</label>
         <input type="password" name="password" class="form-control" required>
       </div>
+      <div class="cf-turnstile mb-3" data-sitekey="<%= process.env.TURNSTILE_SITEKEY %>"></div>
       <button type="submit" class="btn btn-primary w-100">Register</button>
     </form>
   </div>
 
   <%- include("../partials/footer") %>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" asyncdefer></script>
 </body>
 </html>
