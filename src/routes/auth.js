@@ -10,9 +10,16 @@ router.post("/register", authController.postRegister);
 router.get("/verify/:token", authController.verifyEmail);
 
 // Login
-
 router.get("/login", authController.getLogin);
 router.post("/login", authController.postLogin);
+
+// Forgot Password
+router.get("/forgot", authController.getForgotPassword);
+router.post("/forgot", authController.postForgotPassword);
+
+// Reset Password
+router.get("/reset/:token", authController.getResetPassword);
+router.post("/reset", authController.postResetPassword);
 
 // Logout
 router.get("/logout", authController.logout);

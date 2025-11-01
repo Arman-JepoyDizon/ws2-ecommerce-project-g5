@@ -104,8 +104,16 @@ exports.verifyEmail = async (req, res) => {
 
 // GET Login
 exports.getLogin = (req, res) => {
+  let error = null;
+  let message = null;
+
+  if (req.query.reset === "success") {
+    message = "Password has been reset successfully. You can now log in.";
+  }
+
   res.render("auth/login", { 
-    error: null, 
+    error: error,
+    message: message, 
     user: req.session.user || null, 
     logout: req.query.logout || null 
   });
@@ -157,4 +165,131 @@ exports.logout = (req, res) => {
   req.session.destroy(() => {
     res.redirect("/auth/login?logout=manual");
   });
+};
+// GET Forgot Password Page
+exports.getForgotPassword = (req, res) => {
+  res.render("auth/forgot", { error: null, message: null });
+};
+
+// POST Forgot Password
+exports.postForgotPassword = async (req, res) => {
+  const db = req.app.locals.db;
+  const users = db.collection("users");
+  const token = req.body['cf-turnstile-response'];
+  const result = await verifyTurnstile(token, req.ip);
+
+  if (!result.success) {
+    return res.status(400).render('auth/forgot', { error: 'Verification failed. Please try again.', message: null });
+  }
+
+  const { email } = req.body;
+  
+  try {
+    const user = await users.findOne({ email });
+    if (!user) {
+
+      return res.render("auth/forgot", { error: null, message: "If an account with that email exists, a reset link has been sent." });
+    }
+
+
+    const resetToken = uuidv4();
+    const tokenExpiry = Date.now() + 1000 * 60 * 60; // 1 hour
+
+
+    await users.updateOne(
+      { email },
+      { $set: { verificationToken: resetToken, tokenExpiry } }
+    );
+
+
+    const emailData = {
+      sender: { email: "20237660@onlyfreds.fun", name: "OnlyFreds" },
+      to: [{ email }],
+      subject: "Reset your OnlyFreds password",
+      htmlContent: `
+        <h1>Password Reset Request</h1>
+        <p>Click the link below to reset your password. This link is valid for 1 hour.</p>
+        <a href="${process.env.BASE_URL}/auth/reset/${resetToken}">
+          Reset Password
+        </a>
+      `,
+    };
+
+    await brevoClient.sendTransacEmail(emailData);
+
+    res.render("auth/forgot", { error: null, message: "If an account with that email exists, a reset link has been sent." });
+
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    res.render("auth/forgot", { error: "Something went wrong. Try again.", message: null });
+  }
+};
+
+
+exports.getResetPassword = async (req, res) => {
+  const db = req.app.locals.db;
+  const users = db.collection("users");
+  const token = req.params.token;
+
+  try {
+    const user = await users.findOne({ verificationToken: token });
+
+
+    if (!user || user.tokenExpiry < Date.now()) {
+      return res.render("auth/verify", { message: "Invalid or expired password reset token." });
+    }
+
+
+    res.render("auth/reset", { error: null, token: token });
+
+  } catch (err) {
+    console.error("Get reset password error:", err);
+    res.render("auth/verify", { message: "An error occurred." });
+  }
+};
+
+
+exports.postResetPassword = async (req, res) => {
+  const db = req.app.locals.db;
+  const users = db.collection("users");
+  const turnstileToken = req.body['cf-turnstile-response'];
+  const result = await verifyTurnstile(turnstileToken, req.ip);
+
+  if (!result.success) {
+    return res.status(400).render('auth/reset', { error: 'Verification failed. Please try again.', token: req.body.token });
+  }
+
+  const { token, password, confirmPassword } = req.body;
+
+  if (password !== confirmPassword) {
+    return res.render("auth/reset", { error: "Passwords do not match.", token: token });
+  }
+
+  try {
+    const user = await users.findOne({ verificationToken: token });
+
+    if (!user || user.tokenExpiry < Date.now()) {
+      return res.render("auth/verify", { message: "Invalid or expired password reset token." });
+    }
+
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await users.updateOne(
+      { verificationToken: token },
+      { $set: { 
+          passwordHash: passwordHash, 
+          verificationToken: null, 
+          tokenExpiry: null 
+        } 
+      }
+    );
+
+
+    res.redirect("/auth/login?reset=success");
+
+  } catch (err) {
+    console.error("Post reset password error:", err);
+    res.render("auth/reset", { error: "Something went wrong. Try again.", token: token });
+  }
 };
