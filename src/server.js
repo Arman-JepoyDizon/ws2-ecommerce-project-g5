@@ -87,6 +87,8 @@
       app.use("/dashboard", dashboardRoutes);
       const categoryRoutes = require("./routes/categories");
       app.use("/dashboard/admin/categories", categoryRoutes);
+      const productsRouter = require("./routes/products");
+      app.use("/dashboard/admin/products", productsRouter);
 
       app.get('/crash', (req, res, next) => {
         throw new Error('Test crash');
