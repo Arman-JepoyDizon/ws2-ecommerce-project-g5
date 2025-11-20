@@ -85,6 +85,8 @@
       
       const dashboardRoutes = require("./routes/dashboard");
       app.use("/dashboard", dashboardRoutes);
+      const categoryRoutes = require("./routes/categories");
+      app.use("/dashboard/admin/categories", categoryRoutes);
 
       app.get('/crash', (req, res, next) => {
         throw new Error('Test crash');

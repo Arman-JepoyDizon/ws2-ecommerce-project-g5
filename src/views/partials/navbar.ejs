@@ -7,19 +7,31 @@
     </button>
 
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link <%= currentPath === '/' ? 'active' : '' %>" href="/">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link <%= currentPath.startsWith('/products') ? 'active' : '' %>" href="/products">Products</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link <%= currentPath === '/about' ? 'active' : '' %>" href="/about">About</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link <%= currentPath === '/contact' ? 'active' : '' %>" href="/contact">Contact</a>
-        </li>
+<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <% if (user && user.role === 'admin') { %>
+            <li class="nav-item">
+              <a class="nav-link <%= currentPath === '/dashboard/admin' ? 'active' : '' %>" href="/dashboard/admin">Admin Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link <%= currentPath.startsWith('/dashboard/admin/products') ? 'active' : '' %>" href="/dashboard/admin/products">Manage Products</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link <%= currentPath.startsWith('/dashboard/admin/categories') ? 'active' : '' %>" href="/dashboard/admin/categories">Manage Categories</a>
+            </li>
+        <% } else { %>
+            <li class="nav-item">
+              <a class="nav-link <%= currentPath === '/' ? 'active' : '' %>" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link <%= currentPath.startsWith('/products') ? 'active' : '' %>" href="/products">Products</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link <%= currentPath === '/about' ? 'active' : '' %>" href="/about">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link <%= currentPath === '/contact' ? 'active' : '' %>" href="/contact">Contact</a>
+            </li>
+        <% } %>
       </ul>
 
       <div class="d-flex">
