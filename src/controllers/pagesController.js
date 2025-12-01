@@ -1,62 +1,70 @@
 const verifyTurnstile = require("../utils/turnstileVerify");
 const SibApiV3Sdk = require("@getbrevo/brevo");
 
-// Initialize Brevo Client (same as authController)
+// Initialize Brevo Client
 const brevoClient = new SibApiV3Sdk.TransactionalEmailsApi();
 brevoClient.setApiKey(
   SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
   process.env.BREVO_API_KEY
 );
 
-//Static Product Items:
-const freddyProducts = [
-  {
-    name: "Classic Freddy Fazbear",
-    description: "The OG Fred that started it all. Smells like pizza grease.",
-    price: 9.99,
-    imgUrl: "https://i.redd.it/01i6vsviasxa1.png"
-  },
-  {
-    name: "Golden Freddy",
-    description: "He stares into your soul and your wallet.",
-    price: 19.99,
-    imgUrl: "https://wallpapers.com/images/hd/golden-freddy-1511-x-2859-wallpaper-jrludndlrlhve7i0.jpg"
-  },
-  {
-    name: "Toy Freddy",
-    description: "Now with 20% more plastic and 200% more nightmares.",
-    price: 14.99,
-    imgUrl: "https://www.pikpng.com/pngl/b/262-2622993_toy-freddy-png-toy-freddy-fnaf-png-clipart.png"
-  },
-  {
-    name: "Rock Star Freddy",
-    description: "Will rock the living hell out of you.",
-    price: 12.49,
-    imgUrl: "https://preview.redd.it/im-really-into-the-theory-that-rockstar-freddy-was-modeled-v0-w6hbd88euwac1.png?width=640&crop=smart&auto=webp&s=46da745f63acce55209b6df876a565c177793f07"
-  },
-  {
-    name: "Nightmare Freddy",
-    description: "Guaranteed to ruin your sleep schedule.",
-    price: 24.99,
-    imgUrl: "https://wallpapers.com/images/hd/nightmare-freddy-f-n-a-f-character-4zuzfe4wl33nqsvi.png",
-  },
-  {
-    name: "Funtime Freddy",
-    description: "Comes with his bestie Bon-Bon. Batteries not included.",
-    price: 29.99,
-    imgUrl: "https://www.pngkey.com/png/full/226-2263809_funtime-freddy-five-nights-at-freddys.png",
-  }
-];
+// --- HOME PAGE ---
+exports.getIndex = async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const productsCollection = db.collection("products");
 
-exports.getIndex = (req, res) => {
-  res.render("index", {
-    user: req.session.user || null,
-    freddyProducts
-  });
+    // 1. Fetch Featured (Placeholder: First 3 products)
+    const featuredProducts = await productsCollection.find().limit(3).toArray();
+
+    // 2. Fetch Newest (Sorted by Date Descending)
+    const newestProducts = await productsCollection
+      .find()
+      .sort({ createdAt: -1 })
+      .limit(6)
+      .toArray();
+
+    res.render("index", {
+      user: req.session.user || null,
+      featuredProducts,
+      newestProducts
+    });
+  } catch (err) {
+    console.error("Error fetching homepage data:", err);
+    res.status(500).render("500", { title: "Server Error" });
+  }
 };
 
-exports.getProducts = (req, res) => {
-  res.render("products", { user: req.session.user || null , freddyProducts});
+
+
+// --- PRODUCTS PAGE ---
+exports.getProducts = async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const categoryId = req.query.category; // Get category from URL query
+
+    // 1. Fetch all categories for the filter bar
+    const categories = await db.collection("categories").find().toArray();
+
+    // 2. Build Query
+    let query = {};
+    if (categoryId && categoryId !== 'all') {
+        query.categoryId = categoryId;
+    }
+
+    // 3. Fetch Products (Filtered)
+    const products = await db.collection("products").find(query).toArray();
+    
+    res.render("products", { 
+      user: req.session.user || null, 
+      freddyProducts: products,
+      categories: categories,
+      selectedCategory: categoryId || 'all'
+    });
+  } catch (err) {
+    console.error("Error fetching products:", err);
+    res.status(500).render("500", { title: "Server Error" });
+  }
 };
 
 exports.getAbout = (req, res) => {
@@ -89,10 +97,9 @@ exports.postContact = async (req, res) => {
 
   try {
     // 2. Send Email via Brevo
-    // We send it TO the admin (you), FROM the system, with Reply-To set to the user
     const emailData = {
       sender: { email: "no-reply@onlyfreds.fun", name: "OnlyFreds Contact Form" },
-      to: [{ email: "20237660@s.ubaguio.edu" }], // Your email address from contact.ejs
+      to: [{ email: "20237660@s.ubaguio.edu" }], 
       replyTo: { email: email, name: name },
       subject: `[Contact Form] ${subject}`,
       htmlContent: `
@@ -108,7 +115,6 @@ exports.postContact = async (req, res) => {
 
     await brevoClient.sendTransacEmail(emailData);
 
-    // 3. Render Success
     res.render("contact", { 
       user: req.session.user || null,
       success: "Message sent successfully! We'll get back to you soon.",
@@ -131,4 +137,98 @@ exports.getTerms = (req, res) => {
 
 exports.getPrivacy = (req, res) => {
   res.render("privacy", { user: req.session.user || null });
+};
+
+// --- PRODUCT DETAIL PAGE ---
+exports.getProductDetail = async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const productId = req.params.id;
+
+    // 1. Fetch Product
+    const product = await db.collection("products").findOne({ productId });
+
+    if (!product) {
+      return res.status(404).render("404", { title: "Product Not Found" });
+    }
+
+    // 2. Fetch Category Name (for the badge)
+    let categoryName = "Uncategorized";
+    if (product.categoryId) {
+        const category = await db.collection("categories").findOne({ categoryId: product.categoryId });
+        if (category) categoryName = category.name;
+    }
+
+    res.render("product-detail", {
+      user: req.session.user || null,
+      product,
+      categoryName
+    });
+
+  } catch (err) {
+    console.error("Error fetching product detail:", err);
+    res.status(500).render("500", { title: "Server Error" });
+  }
+};
+
+// --- SITEMAP ---
+exports.getSitemap = async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const baseUrl = process.env.BASE_URL || 'https://onlyfreds.fun';
+
+    // 1. Define Static Routes
+    const urls = [
+      { loc: '/', changefreq: 'daily', priority: 1.0 },
+      { loc: '/products', changefreq: 'daily', priority: 0.8 },
+      { loc: '/about', changefreq: 'monthly', priority: 0.6 },
+      { loc: '/contact', changefreq: 'monthly', priority: 0.6 },
+      { loc: '/terms', changefreq: 'yearly', priority: 0.3 },
+      { loc: '/privacy', changefreq: 'yearly', priority: 0.3 },
+      { loc: '/auth/login', changefreq: 'monthly', priority: 0.4 },
+      { loc: '/auth/register', changefreq: 'monthly', priority: 0.4 },
+    ];
+
+    // 2. Add Dynamic Category Routes
+    const categories = await db.collection("categories").find().toArray();
+    categories.forEach(cat => {
+      urls.push({
+        loc: `/products?category=${cat.categoryId}`,
+        changefreq: 'weekly',
+        priority: 0.7
+      });
+    });
+
+    // 3. Add Dynamic Product Routes (Optional, but good for SEO)
+    const products = await db.collection("products").find().toArray();
+    products.forEach(prod => {
+      urls.push({
+        loc: `/product/${prod.productId}`,
+        changefreq: 'weekly',
+        priority: 0.8
+      });
+    });
+
+    // 4. Generate XML
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+    urls.forEach(url => {
+      xml += '  <url>\n';
+      xml += `    <loc>${baseUrl}${url.loc}</loc>\n`;
+      xml += `    <changefreq>${url.changefreq}</changefreq>\n`;
+      xml += `    <priority>${url.priority}</priority>\n`;
+      xml += '  </url>\n';
+    });
+
+    xml += '</urlset>';
+
+    // 5. Send Response
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+
+  } catch (err) {
+    console.error("Sitemap generation error:", err);
+    res.status(500).end();
+  }
 };

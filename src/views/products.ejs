@@ -4,50 +4,171 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Products - OnlyFreds</title>
+  
+  <meta name="description" content="Shop the exclusive collection of Freddy Fazbear merchandise. Plushies, shirts, and more.">
+  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css"/>
   <link rel="icon" type="image/png" href="/img/OnlyFreds_logo.png"/>
+
+  <style>
+    .fade-in-section {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+      will-change: opacity, transform;
+    }
+    .fade-in-section.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* Category Scroll Bar Container */
+    .category-scroll {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none;  /* IE 10+ */
+        padding: 1rem 0.5rem; /* Add vertical padding for shadows */
+    }
+    .category-scroll::-webkit-scrollbar { 
+        display: none; /* Chrome/Safari */
+    }
+    
+    /* Improved Category Card Styling */
+    .category-card {
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        cursor: pointer;
+        border: 1px solid transparent;
+        min-width: 160px;
+    }
+
+    /* Inactive State */
+    .category-card-inactive {
+        background-color: #fff;
+        color: #6c757d;
+    }
+    .category-card-inactive:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+        color: #0d6efd; /* Primary color on hover */
+        border-color: #e9ecef;
+    }
+
+    /* Active State */
+    .category-card-active {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        box-shadow: 0 8px 15px rgba(13, 110, 253, 0.3) !important;
+        transform: translateY(-2px);
+        border: none;
+    }
+    .category-card-active:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 25px rgba(13, 110, 253, 0.4) !important;
+        color: white;
+    }
+    
+    /* Product Card Hover */
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,0.175) !important;
+        transition: all 0.3s ease;
+    }
+  </style>
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
 
-  <!-- Navbar -->
   <%- include("partials/navbar") %>
 
-  <section class="container text-center py-5">
-    <h1 class="display-4 fw-bold">🛒 Products Page</h1>
-    <p class="lead mb-4">Not ready yet... tehee 😳👉👈</p>
-    <div class="d-flex justify-content-center">
-      <img src="https://media.tenor.com/x8v1oNUOmg4AAAAd/tehe.gif" class="img-fluid rounded shadow" alt="Tehee">
+  <section class="container text-center py-5 fade-in-section">
+    <h1 class="display-4 fw-bold">🛒 The Shop</h1>
+    <p class="lead mb-4 text-muted">Browse our collection of cursed artifacts.</p>
+  </section>
+
+  <section class="container pb-4 fade-in-section">
+    <div class="d-flex overflow-auto gap-3 category-scroll justify-content-lg-center justify-content-start">
+        
+        <a href="/products?category=all" class="text-decoration-none">
+            <div class="card shadow-sm category-card rounded-4 <%= selectedCategory === 'all' ? 'category-card-active' : 'category-card-inactive' %>">
+                <div class="card-body text-center py-3 d-flex align-items-center justify-content-center">
+                    <h5 class="card-title mb-0 fw-bold">✨ All</h5>
+                </div>
+            </div>
+        </a>
+
+        <% if (categories && categories.length > 0) { %>
+            <% categories.forEach(cat => { %>
+                <a href="/products?category=<%= cat.categoryId %>" class="text-decoration-none">
+                    <div class="card shadow-sm category-card rounded-4 <%= selectedCategory === cat.categoryId ? 'category-card-active' : 'category-card-inactive' %>">
+                        <div class="card-body text-center py-3 d-flex align-items-center justify-content-center">
+                            <h5 class="card-title mb-0 fw-bold text-nowrap"><%= cat.name %></h5>
+                        </div>
+                    </div>
+                </a>
+            <% }) %>
+        <% } %>
+
     </div>
   </section>
 
-  <main class="container my-5">
+  <main class="container my-4 fade-in-section">
     <div class="row g-4">
+    
       <% if (freddyProducts && freddyProducts.length > 0) { %>
         <% freddyProducts.forEach((product) => { %>
-          <div class="col-12 col-sm-6 col-md-4 col-lg-4">
-            <div class="card h-100 shadow-sm">
-              <img src="<%= product.imgUrl %>" class="card-img-top product-img" alt="<%= product.name %>">
-              <div class="card-body text-center d-flex flex-column">
-                <h5 class="card-title"><%= product.name %></h5>
-                <p class="card-text"><%= product.description %></p>
-                <p class="fw-bold">$<%= product.price.toFixed(2) %></p>
-                <button class="btn btn-primary w-100 mt-auto" disabled>Add to Cart</button>
-              </div>
+          <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="card h-100 border-0 shadow-sm card-hover rounded-4 overflow-hidden">
+              <a href="/product/<%= product.productId %>" class="text-decoration-none text-reset h-100 d-flex flex-column">
+                <div class="p-3 bg-white text-center">
+                    <img src="<%= product.imgUrl || '/img/OnlyFreds_logo.png' %>" class="img-fluid product-img" alt="<%= product.name %>" style="height: 200px; object-fit: contain;">
+                </div>
+                <div class="card-body text-center d-flex flex-column p-4">
+                  <h5 class="card-title fw-bold text-dark"><%= product.name %></h5>
+                  <p class="card-text text-muted small text-truncate"><%= product.description %></p>
+                  
+                  <div class="mt-auto">
+                      <p class="fw-bold text-primary fs-5 mb-3">
+                          <% if (product.hasVariants) { %>
+                              <small class="text-muted fs-6 fw-normal">From</small> $<%= product.price.toFixed(2) %>
+                          <% } else { %>
+                              $<%= product.price.toFixed(2) %>
+                          <% } %>
+                      </p>
+                      <button class="btn btn-dark w-100 rounded-pill fw-bold" disabled>Add to Cart</button>
+                  </div>
+                </div>
+              </a>
             </div>
           </div>
         <% }) %>
       <% } else { %>
-        <p class="text-muted">No products available yet.</p>
+        <div class="col-12 text-center py-5">
+            <div class="fs-1 mb-3">👻</div>
+            <h4 class="text-muted">No products found in this category.</h4>
+            <p class="text-muted">Maybe check the Backrooms?</p>
+            <a href="/products?category=all" class="btn btn-outline-primary rounded-pill mt-2">View All Products</a>
+        </div>
       <% } %>
     </div>
   </main>
 
-  <!-- Footer -->
   <%- include("partials/footer") %>
 
-  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/script/navbar.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+      document.querySelectorAll('.fade-in-section').forEach(section => observer.observe(section));
+    });
+  </script>
 </body>
 </html>

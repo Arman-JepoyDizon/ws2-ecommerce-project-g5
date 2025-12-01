@@ -5,6 +5,12 @@ const pagesController = require("../controllers/pagesController");
 // Home
 router.get("/", pagesController.getIndex);
 
+// Product Detail
+router.get("/product/:id", pagesController.getProductDetail);
+
+// Sitemap (SEO)
+router.get("/sitemap.xml", pagesController.getSitemap);
+
 // Static Pages
 router.get("/products", pagesController.getProducts);
 router.get("/about", pagesController.getAbout);

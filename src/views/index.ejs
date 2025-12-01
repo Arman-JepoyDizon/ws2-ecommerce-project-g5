@@ -4,51 +4,189 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OnlyFreds - Home</title>
-  <!-- Bootstrap CSS -->
+  
+  <meta name="description" content="OnlyFreds: The premier destination for Freddy Fazbear plushies and merchandise.">
+  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css"/>
   <link rel="icon" type="image/png" href="/img/OnlyFreds_logo.png"/>
+
+  <style>
+    /* Hero Image Background */
+    .hero-section {
+        background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+        background-size: cover;
+        background-position: center;
+        height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Animations */
+    .fade-in-section {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+      will-change: opacity, transform;
+    }
+    .fade-in-section.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,0.175) !important;
+        transition: all 0.3s ease;
+    }
+    
+    /* Product Image Fit */
+    .product-img-card {
+        height: 250px;
+        object-fit: contain;
+        padding: 1rem;
+        background-color: #fff;
+    }
+  </style>
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
 
-  <!-- Navbar -->
   <%- include("partials/navbar") %>
 
-  <!-- Hero Section -->
-  <section class="bg-primary text-white text-center py-5">
+  <header class="hero-section text-white text-center fade-in-section">
     <div class="container">
-      <h1 class="display-4 fw-bold">Welcome to OnlyFreds</h1>
-      <p class="lead">Your one-stop shop for exclusive Freddy vibes 🧸</p>
+      <h1 class="display-2 fw-bold mb-3">Welcome to OnlyFreds</h1>
+      <p class="lead fs-4 mb-4">Your one-stop shop for exclusive Freddy vibes 🧸</p>
+      <a href="/products" class="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold shadow">Shop Collection</a>
     </div>
-  </section>
+  </header>
 
-  <!-- Products Grid -->
   <main class="flex-grow-1">
-    <section class="container my-5">
-      <h2 class="text-center mb-4">Featured Freds</h2>
-      <div class="row g-4">
-        <% freddyProducts.forEach((product) => { %>
-            <div class="col-6 col-md-4 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <img src="<%= product.imgUrl %>" class="card-img-top product-img" alt="<%= product.name %>">
-                <div class="card-body text-center d-flex flex-column">
-                <h5 class="card-title"><%= product.name %></h5>
-                <p class="card-text"><%= product.description %></p>
-                <p class="fw-bold">$<%= product.price.toFixed(2) %></p>
-                <button class="btn btn-primary w-100 mt-auto" disabled>Add to Cart</button>
+    
+    <section class="container py-5 fade-in-section">
+      <div class="text-center mb-5">
+        <span class="badge bg-warning text-dark mb-2 px-3 py-2 rounded-pill fw-bold text-uppercase">Trending</span>
+        <h2 class="display-5 fw-bold">Best Sellers</h2>
+        <p class="text-muted">The community's favorite animatronics this week.</p>
+      </div>
+
+      <div class="row g-4 justify-content-center">
+        <% if (featuredProducts && featuredProducts.length > 0) { %>
+            <% featuredProducts.forEach((product) => { %>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm card-hover rounded-4 overflow-hidden">
+                      <a href="/product/<%= product.productId %>" class="text-decoration-none text-reset h-100 d-flex flex-column">
+                        <img src="<%= product.imgUrl || '/img/OnlyFreds_logo.png' %>" class="card-img-top product-img-card" alt="<%= product.name %>">
+                        <div class="card-body text-center d-flex flex-column p-4">
+                            <h5 class="card-title fw-bold text-dark"><%= product.name %></h5>
+                            <p class="card-text text-muted small"><%= product.description %></p>
+                            
+                            <div class="mt-auto pt-3">
+                                <h4 class="fw-bold text-primary mb-3">
+                                    <% if (product.hasVariants) { %>
+                                        <small class="fs-6 text-muted">From</small> $<%= product.price.toFixed(2) %>
+                                    <% } else { %>
+                                        $<%= product.price.toFixed(2) %>
+                                    <% } %>
+                                </h4>
+                                <button class="btn btn-dark w-100 rounded-pill fw-bold" disabled>Add to Cart</button>
+                            </div>
+                        </div>
+                      </a>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <p class="text-center text-muted">No featured products available.</p>
+        <% } %>
+      </div>
+    </section>
+
+    <section class="bg-white py-5 fade-in-section">
+        <div class="container py-4">
+            <div class="d-flex justify-content-between align-items-end mb-5">
+                <div>
+                    <h2 class="display-5 fw-bold mb-0">New Arrivals</h2>
+                    <p class="text-muted mb-0">Fresh from the factory floor.</p>
+                </div>
+                <div>
+                    <button class="btn btn-outline-dark rounded-circle me-2" type="button" data-bs-target="#newArrivalsCarousel" data-bs-slide="prev">
+                        ←
+                    </button>
+                    <button class="btn btn-outline-dark rounded-circle" type="button" data-bs-target="#newArrivalsCarousel" data-bs-slide="next">
+                        →
+                    </button>
                 </div>
             </div>
-            </div>
-        <% }) %>
-     </div>
+
+            <% if (newestProducts && newestProducts.length > 0) { %>
+                <div id="newArrivalsCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        
+                        <% 
+                           const chunkSize = 3;
+                           for (let i = 0; i < newestProducts.length; i += chunkSize) {
+                               const chunk = newestProducts.slice(i, i + chunkSize);
+                               const isActive = i === 0 ? 'active' : '';
+                        %>
+                            <div class="carousel-item <%= isActive %>">
+                                <div class="row g-4">
+                                    <% chunk.forEach(product => { %>
+                                        <div class="col-12 col-md-4">
+                                            <div class="card h-100 border-0 shadow-sm bg-light rounded-4">
+                                              <a href="/product/<%= product.productId %>" class="text-decoration-none text-reset h-100 d-flex flex-column">
+                                                <div class="position-relative">
+                                                    <span class="position-absolute top-0 start-0 badge bg-success m-3">New</span>
+                                                    <img src="<%= product.imgUrl || '/img/OnlyFreds_logo.png' %>" class="card-img-top product-img-card bg-transparent" alt="<%= product.name %>">
+                                                </div>
+                                                <div class="card-body text-center p-4">
+                                                    <h5 class="fw-bold mb-1"><%= product.name %></h5>
+                                                    <p class="text-primary fw-bold mb-0">
+                                                        <% if (product.hasVariants) { %>
+                                                            <small class="text-muted">From</small> $<%= product.price.toFixed(2) %>
+                                                        <% } else { %>
+                                                            $<%= product.price.toFixed(2) %>
+                                                        <% } %>
+                                                    </p>
+                                                </div>
+                                              </a>
+                                            </div>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            </div>
+                        <% } %>
+
+                    </div>
+                </div>
+            <% } else { %>
+                <p class="text-center text-muted">No new arrivals yet.</p>
+            <% } %>
+
+        </div>
     </section>
+
   </main>
 
-  <!-- Footer -->
   <%- include("partials/footer") %>
 
-  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/script/navbar.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+      document.querySelectorAll('.fade-in-section').forEach(section => observer.observe(section));
+    });
+  </script>
 </body>
 </html>

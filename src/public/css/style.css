@@ -27,14 +27,3 @@ body {
   background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
 }
 
-.card-title {
-  font-weight: bold;
-  color: #007bff;
-}
-
-/* Ensure product images are uniform */
-.product-img {
-  height: 200px;        /* Fixed height */
-  object-fit: contain;    /* Crop image to fill area */
-  object-position: center; /* Center the crop */
-}
