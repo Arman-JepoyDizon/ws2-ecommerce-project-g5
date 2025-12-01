@@ -234,7 +234,7 @@ exports.getSitemap = async (req, res) => {
 
 // --- ROBOTS.TXT ---
 exports.getRobots = (req, res) => {
-  const baseUrl = process.env.BASE_URL || 'https://onlyfreds.fun';
+  const baseUrl = process.env.BASE_URL || 'https://www.onlyfreds.fun';
 const content = `User-agent: *
 Allow: /
 Disallow: /dashboard/
