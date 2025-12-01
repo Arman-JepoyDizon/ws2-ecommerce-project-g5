@@ -117,22 +117,34 @@ exports.verifyEmail = async (req, res) => {
 };
 
 // GET Login
+// GET Login
 exports.getLogin = (req, res) => {
   let error = null;
   let message = null;
 
+  // Handle Reset Success Message
   if (req.query.reset === "success") {
-    message = "Password has been reset successfully. You can now log in.";
+    message = "✅ Password has been reset successfully. You can now log in.";
+  }
+
+  // Handle Logout Messages
+  if (req.query.logout === "inactive") {
+     message = "⚠️ You’ve been logged out due to inactivity. Please log in again.";
+  } else if (req.query.logout === "manual") {
+     message = "✅ You have successfully logged out.";
+  }
+
+  // Handle Auth Middleware Errors (e.g. "Please log in to add to cart")
+  if (req.query.error) {
+    error = req.query.error;
   }
 
   res.render("auth/login", { 
     error: error,
     message: message, 
-    user: req.session.user || null, 
-    logout: req.query.logout || null 
+    user: req.session.user || null
   });
 };
-
 
 // POST Login
 exports.postLogin = async (req, res) => {

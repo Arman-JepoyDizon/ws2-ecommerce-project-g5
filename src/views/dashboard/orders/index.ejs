@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Orders - OnlyFreds</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+  <%- include("../../partials/navbar") %>
+
+  <div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold">📦 Admin Orders</h2>
+      <a href="/dashboard/admin" class="btn btn-outline-secondary rounded-pill">Back to Dashboard</a>
+    </div>
+
+    <% if (success) { %>
+        <div class="alert alert-success rounded-4 mb-4"><%= success %></div>
+    <% } %>
+
+    <div class="card border-0 shadow rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light border-bottom">
+                    <tr>
+                        <th class="ps-4 py-3">Order ID</th>
+                        <th class="py-3">Customer Email</th>
+                        <th class="py-3">Total Amount</th>
+                        <th class="py-3">Status</th>
+                        <th class="py-3">Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (orders && orders.length > 0) { %>
+                        <% orders.forEach(order => { %>
+                        <tr>
+                            <td class="ps-4 font-monospace small"><%= order.orderId.substring(0, 8) %>...</td>
+                            <td><%= order.userEmail %></td>
+                            <td class="fw-bold text-primary">₱<%= order.totalAmount.toFixed(2) %></td>
+                            <td>
+                                <span class="badge rounded-pill bg-warning text-dark border border-warning">
+                                    <%= order.orderStatus %>
+                                </span>
+                            </td>
+                            <td class="text-muted small">
+                                <%= new Date(order.createdAt).toLocaleString() %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">No orders found.</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+  </div>
+
+  <%- include("../../partials/footer") %>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

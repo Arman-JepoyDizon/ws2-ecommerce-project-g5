@@ -1,16 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const dashboardController = require("../controllers/dashboardController");
+const { ensureAuth, ensureAdmin } = require("../middleware/authMiddleware");
 
-// Auth middleware
-function ensureAuth(req, res, next) {
-  if (!req.session.user) {
-    return res.redirect("/auth/login");
-  }
-  next();
-}
-
+// Customer Dashboard
 router.get("/customer", ensureAuth, dashboardController.getCustomerDashboard);
-router.get("/admin", ensureAuth, dashboardController.getAdminDashboard);
+
+// Admin Dashboard
+router.get("/admin", ensureAuth, ensureAdmin, dashboardController.getAdminDashboard);
+
+// Admin Orders List
+router.get("/admin/orders", ensureAuth, ensureAdmin, dashboardController.getAdminOrders);
 
 module.exports = router;

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart - OnlyFreds</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+  <%- include("partials/navbar") %>
+
+  <div class="container py-5">
+    <h2 class="fw-bold mb-4">🛒 Your Cart</h2>
+
+    <% if (error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+    <% if (success) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <%= success %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <% } %>
+
+    <% if (cart && cart.length > 0) { %>
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                    <div class="card-body p-0">
+                        
+                        <form id="checkoutForm" action="/orders/checkout" method="POST">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4 py-3" style="width: 50px;">
+                                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox" onclick="toggleAll(this)" checked>
+                                        </th>
+                                        <th class="py-3">Product</th>
+                                        <th class="py-3" style="width: 140px;">Quantity</th>
+                                        <th class="py-3 text-end pe-4">Total</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% cart.forEach((item, index) => { %>
+                                    <tr id="row-<%= index %>">
+                                        <td class="ps-4">
+                                            <input type="checkbox" name="selectedItems[]" 
+                                                   value="<%= item.productId %>|<%= item.variant || '' %>" 
+                                                   class="form-check-input item-checkbox" 
+                                                   id="cb-<%= index %>"
+                                                   data-index="<%= index %>"
+                                                   data-price="<%= item.price %>" 
+                                                   data-name="<%= item.name %>"
+                                                   onclick="updateSummary()"
+                                                   checked>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="<%= item.imgUrl || '/img/OnlyFreds_logo.png' %>" style="width: 50px; height: 50px; object-fit: contain;" class="rounded me-3 border">
+                                                <div>
+                                                    <div class="fw-bold text-dark"><%= item.name %></div>
+                                                    <small class="text-muted">₱<%= parseFloat(item.price).toFixed(2) %></small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control text-center quantity-input" 
+                                                   id="qty-<%= index %>"
+                                                   value="<%= item.quantity %>" 
+                                                   min="1" 
+                                                   data-index="<%= index %>"
+                                                   data-productid="<%= item.productId %>"
+                                                   data-variant="<%= item.variant || '' %>"
+                                                   onchange="handleQuantityChange(this)">
+                                        </td>
+                                        <td class="text-end pe-4 fw-bold row-total" id="total-<%= index %>">
+                                            ₱<%= (item.price * item.quantity).toFixed(2) %>
+                                        </td>
+                                        <td class="text-end pe-3">
+                                            <button type="button" class="btn btn-sm text-danger remove-btn" 
+                                                data-id="<%= item.productId %>" 
+                                                data-variant="<%= item.variant || '' %>">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 100px;">
+                    <h4 class="fw-bold mb-3">Order Summary</h4>
+                    
+                    <div id="summaryItemsList" class="mb-3 border-bottom pb-3 small">
+                        </div>
+
+                    <div class="d-flex justify-content-between mb-4">
+                        <span class="fw-bold fs-5">Total</span>
+                        <span class="fw-bold fs-5 text-primary" id="cartTotal">₱0.00</span>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm" id="checkoutBtn" data-bs-toggle="modal" data-bs-target="#checkoutModal">
+                        Checkout Selected 🚀
+                    </button>
+                </div>
+            </div>
+        </div>
+    <% } else { %>
+        <div class="text-center py-5">
+            <div class="fs-1 mb-3">🕸️</div>
+            <h4 class="text-muted">Your cart is empty.</h4>
+            <a href="/products" class="btn btn-primary rounded-pill mt-3">Start Shopping</a>
+        </div>
+    <% } %>
+  </div>
+
+  <form id="removeForm" action="/cart/remove" method="POST">
+      <input type="hidden" name="productId" id="removeProductId">
+      <input type="hidden" name="variant" id="removeVariant">
+  </form>
+
+  <div class="modal fade" id="removeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-body p-4 text-center">
+          <div class="mb-3 text-warning" style="font-size: 3rem;">⚠️</div>
+          <h4 class="fw-bold mb-2">Remove Item?</h4>
+          <p class="text-muted">Are you sure you want to remove this from your cart?</p>
+          <div class="d-flex justify-content-center gap-2">
+            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" id="confirmRemoveBtn" class="btn btn-danger rounded-pill px-4 fw-bold">Remove</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="checkoutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-body p-4 text-center">
+          <div class="mb-3 text-primary" style="font-size: 3rem;">📦</div>
+          <h4 class="fw-bold mb-2">Confirm Order?</h4>
+          <p class="text-muted">You are about to place an order for the selected items.</p>
+          
+          <div class="d-flex justify-content-center gap-2">
+            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" id="confirmCheckoutBtn" class="btn btn-primary rounded-pill px-4 fw-bold">Yes, Place Order</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%- include("partials/footer") %>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+      // 1. Calculate & Render Summary
+      function updateSummary() {
+          let total = 0;
+          const listContainer = document.getElementById('summaryItemsList');
+          listContainer.innerHTML = ''; // Clear current list
+          let hasItems = false;
+
+          const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+          
+          checkboxes.forEach(cb => {
+              hasItems = true;
+              const index = cb.dataset.index;
+              const qtyInput = document.getElementById(`qty-${index}`);
+              
+              const name = cb.dataset.name;
+              const price = parseFloat(cb.dataset.price);
+              const qty = parseInt(qtyInput.value) || 1;
+              const subtotal = price * qty;
+
+              total += subtotal;
+
+              // Append item line to summary
+              const itemRow = document.createElement('div');
+              itemRow.className = "d-flex justify-content-between mb-1";
+              itemRow.innerHTML = `
+                  <span class="text-muted text-truncate" style="max-width: 200px;">${qty}x ${name}</span>
+                  <span>₱${subtotal.toFixed(2)}</span>
+              `;
+              listContainer.appendChild(itemRow);
+          });
+
+          // Update Total Display
+          document.getElementById('cartTotal').innerText = '₱' + total.toFixed(2);
+          
+          // Disable checkout if no items selected
+          const btn = document.getElementById('checkoutBtn');
+          if(btn) btn.disabled = !hasItems;
+      }
+
+      // 2. Handle Quantity Change (AJAX)
+      async function handleQuantityChange(input) {
+          const newQty = parseInt(input.value);
+          if (newQty < 1) {
+              input.value = 1;
+              return;
+          }
+
+          const productId = input.dataset.productid;
+          const variant = input.dataset.variant;
+          const index = input.dataset.index;
+          
+          // Optimistic UI Update
+          const checkbox = document.getElementById(`cb-${index}`);
+          const price = parseFloat(checkbox.dataset.price);
+          const rowTotalEl = document.getElementById(`total-${index}`);
+          rowTotalEl.innerText = '₱' + (price * newQty).toFixed(2);
+
+          updateSummary();
+
+          try {
+              await fetch('/cart/update', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                  body: JSON.stringify({ productId, variant, quantity: newQty })
+              });
+          } catch (err) { console.error("Network error:", err); }
+      }
+
+      // 3. Remove Logic
+      const removeBtns = document.querySelectorAll('.remove-btn');
+      const confirmRemoveBtn = document.getElementById('confirmRemoveBtn');
+      const removeForm = document.getElementById('removeForm');
+      const removeModal = new bootstrap.Modal(document.getElementById('removeModal'));
+
+      removeBtns.forEach(btn => {
+          btn.addEventListener('click', function() {
+              document.getElementById('removeProductId').value = this.dataset.id;
+              document.getElementById('removeVariant').value = this.dataset.variant;
+              removeModal.show();
+          });
+      });
+
+      confirmRemoveBtn.addEventListener('click', function() {
+          removeForm.submit();
+      });
+
+      // 4. Checkout Confirmation Logic
+      const confirmCheckoutBtn = document.getElementById('confirmCheckoutBtn');
+      const checkoutForm = document.getElementById('checkoutForm');
+      
+      confirmCheckoutBtn.addEventListener('click', function() {
+          checkoutForm.submit();
+      });
+
+      // 5. Toggle All Logic
+      function toggleAll(source) {
+          const checkboxes = document.querySelectorAll('.item-checkbox');
+          checkboxes.forEach(cb => cb.checked = source.checked);
+          updateSummary();
+      }
+
+      // Init Summary on Load
+      document.addEventListener('DOMContentLoaded', updateSummary);
+  </script>
+</body>
+</html>

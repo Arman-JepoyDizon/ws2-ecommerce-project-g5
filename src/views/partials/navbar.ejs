@@ -18,6 +18,9 @@
             <li class="nav-item">
               <a class="nav-link <%= currentPath.startsWith('/dashboard/admin/categories') ? 'active' : '' %>" href="/dashboard/admin/categories">Manage Categories</a>
             </li>
+              <li class="nav-item">
+              <a class="nav-link <%= currentPath.startsWith('/dashboard/admin/orders') ? 'active' : '' %>" href="/dashboard/admin/orders">Manage Orders</a>
+            </li>
         <% } else { %>
             <li class="nav-item">
               <a class="nav-link <%= currentPath === '/' ? 'active' : '' %>" href="/">Home</a>
@@ -40,7 +43,9 @@
             <a href="/dashboard/admin" class="btn btn-outline-light me-2"><%= user.name %> (Admin)</a>
           <% } else { %>
             <a href="/dashboard/customer" class="btn btn-outline-light me-2"><%= user.name %></a>
+            <a class="btn btn-outline-light me-2" href="/cart">Cart 🛒</a>
           <% } %>
+            
             <a href="/auth/logout" class="btn btn-danger">Logout</a>
         <% } else { %>
             <a href="/auth/login" class="btn btn-outline-light me-2">Login</a>
