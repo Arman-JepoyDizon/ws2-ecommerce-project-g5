@@ -23,7 +23,21 @@ exports.postRegister = async (req, res) => {
   if (!result.success) {
     return res.status(400).render('auth/register', { error: 'Verification failed. Please try again.' });
   }
-  const { firstName, lastName, email, password } = req.body;
+  
+  const { firstName, lastName, email, password, confirmPassword } = req.body;
+
+  // --- NEW: Password Validation ---
+  if (password !== confirmPassword) {
+    return res.render("auth/register", { error: "Passwords do not match." });
+  }
+
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+  if (!passwordRegex.test(password)) {
+    return res.render("auth/register", { 
+        error: "Password must be at least 8 characters and include 1 uppercase, 1 lowercase, 1 number, and 1 special character." 
+    });
+  }
+  // --------------------------------
 
   try {
     // Check duplicate
@@ -58,7 +72,7 @@ exports.postRegister = async (req, res) => {
 
     // Send email via Brevo
     const emailData = {
-      sender: { email: "20237660@onlyfreds.fun", name: "OnlyFreds" },
+      sender: { email: "no-reply@onlyfreds.fun", name: "OnlyFreds" },
       to: [{ email }],
       subject: "Verify your OnlyFreds account",
       htmlContent: `

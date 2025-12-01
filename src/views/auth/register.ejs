@@ -5,42 +5,186 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register - OnlyFreds</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="icon" type="image/png" href="/img/OnlyFreds_logo.png"/>
+  <style>
+    .auth-card {
+        border: none;
+        border-radius: 1.5rem;
+        box-shadow: 0 1rem 3rem rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    .auth-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    .form-control:focus {
+        box-shadow: none;
+        border-color: #0d6efd;
+    }
+    .password-wrapper {
+        position: relative;
+    }
+    .password-toggle {
+        position: absolute;
+        top: 50%;
+        right: 15px;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #6c757d;
+        z-index: 10;
+    }
+    .validation-list li {
+        font-size: 0.85rem;
+        color: #dc3545; /* Default red */
+    }
+    .validation-list li.valid {
+        color: #198754; /* Green */
+    }
+  </style>
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
 
   <%- include("../partials/navbar") %>
 
-  <div class="container py-5">
-    <h2 class="text-center mb-4">Register for OnlyFreds</h2>
-    <% if (error) { %>
-      <div class="alert alert-danger"><%= error %></div>
-    <% } %>
-    <form method="POST" action="/auth/register" class="mx-auto" style="max-width:500px;">
-      <div class="mb-3">
-        <label>First Name</label>
-        <input type="text" name="firstName" class="form-control" required>
-      </div>
-      <div class="mb-3">
-        <label>Last Name</label>
-        <input type="text" name="lastName" class="form-control" required>
-      </div>
-      <div class="mb-3">
-        <label>Email</label>
-        <input type="email" name="email" class="form-control" required>
-      </div>
-      <div class="mb-3">
-        <label>Password</label>
-        <input type="password" name="password" class="form-control" required>
-      </div>
-      <div class="cf-turnstile mb-3" data-sitekey="<%= process.env.TURNSTILE_SITEKEY %>"></div>
-      <button type="submit" class="btn btn-primary w-100">Register</button>
-    </form>
+  <div class="container py-5 flex-grow-1 d-flex align-items-center justify-content-center">
+    <div class="col-12 col-md-8 col-lg-5">
+        <div class="card auth-card">
+            <div class="auth-header">
+                <h3 class="fw-bold mb-0">Join the Fredverse</h3>
+                <p class="mb-0 opacity-75">Create your account</p>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                
+                <% if (error) { %>
+                    <div class="alert alert-danger rounded-3"><%= error %></div>
+                <% } %>
+
+                <form method="POST" action="/auth/register" id="registerForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">First Name</label>
+                            <input type="text" name="firstName" class="form-control bg-light border-0 py-2 rounded-3" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase text-muted">Last Name</label>
+                            <input type="text" name="lastName" class="form-control bg-light border-0 py-2 rounded-3" required>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Email Address</label>
+                        <input type="email" name="email" class="form-control bg-light border-0 py-2 rounded-3" required>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password" id="password" class="form-control bg-light border-0 py-2 rounded-3 pe-5" required>
+                            <i class="bi bi-eye-slash password-toggle" onclick="togglePassword('password', this)"></i>
+                        </div>
+                        <ul class="list-unstyled mt-2 mb-0 ps-1 validation-list" id="passwordRequirements">
+                            <li id="req-length">• At least 8 characters</li>
+                            <li id="req-upper">• One uppercase letter</li>
+                            <li id="req-lower">• One lowercase letter</li>
+                            <li id="req-number">• One number</li>
+                            <li id="req-special">• One special character (!@#$%^&*)</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-3 mb-4">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Confirm Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="confirmPassword" id="confirmPassword" class="form-control bg-light border-0 py-2 rounded-3 pe-5" required>
+                            <i class="bi bi-eye-slash password-toggle" onclick="togglePassword('confirmPassword', this)"></i>
+                        </div>
+                        <div id="matchMessage" class="small mt-1 text-danger d-none">Passwords do not match</div>
+                    </div>
+
+                    <div class="cf-turnstile mb-3" data-sitekey="<%= process.env.TURNSTILE_SITEKEY %>"></div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-bold shadow-sm" id="submitBtn">Register Account</button>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="small text-muted mb-0">Already have an account? <a href="/auth/login" class="text-decoration-none fw-bold">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
   </div>
 
   <%- include("../partials/footer") %>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" asyncdefer></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+  <script>
+    function togglePassword(inputId, icon) {
+        const input = document.getElementById(inputId);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("bi-eye-slash");
+            icon.classList.add("bi-eye");
+        } else {
+            input.type = "password";
+            icon.classList.remove("bi-eye");
+            icon.classList.add("bi-eye-slash");
+        }
+    }
+
+    // Live Validation Logic
+    const passwordInput = document.getElementById('password');
+    const confirmInput = document.getElementById('confirmPassword');
+    const matchMessage = document.getElementById('matchMessage');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const requirements = {
+        length: /.{8,}/,
+        upper: /[A-Z]/,
+        lower: /[a-z]/,
+        number: /[0-9]/,
+        special: /[!@#$%^&*(),.?":{}|<>]/
+    };
+
+    passwordInput.addEventListener('input', function() {
+        const val = this.value;
+        
+        // Update Requirements UI
+        document.getElementById('req-length').classList.toggle('valid', requirements.length.test(val));
+        document.getElementById('req-upper').classList.toggle('valid', requirements.upper.test(val));
+        document.getElementById('req-lower').classList.toggle('valid', requirements.lower.test(val));
+        document.getElementById('req-number').classList.toggle('valid', requirements.number.test(val));
+        document.getElementById('req-special').classList.toggle('valid', requirements.special.test(val));
+
+        checkForm();
+    });
+
+    confirmInput.addEventListener('input', checkForm);
+
+    function checkForm() {
+        const pass = passwordInput.value;
+        const confirm = confirmInput.value;
+        let valid = true;
+
+        // Check Regex
+        for (let key in requirements) {
+            if (!requirements[key].test(pass)) valid = false;
+        }
+
+        // Check Match
+        if (pass && confirm && pass !== confirm) {
+            matchMessage.classList.remove('d-none');
+            valid = false;
+        } else {
+            matchMessage.classList.add('d-none');
+        }
+
+        // Only disable if we want strict client-side blocking (optional)
+        // submitBtn.disabled = !valid; 
+    }
+  </script>
 </body>
 </html>
