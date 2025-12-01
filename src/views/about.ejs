@@ -3,32 +3,184 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>About - OnlyFreds</title>
+  
+  <title>About OnlyFreds | Premium Freddy Fazbear Merchandise & Plushies</title>
+  <meta name="title" content="About OnlyFreds | Premium Freddy Fazbear Merchandise & Plushies">
+  <meta name="description" content="Discover OnlyFreds, the ultimate destination for Five Nights at Freddy's fans. We offer exclusive Fred plushies, digital collectibles, and animatronic-inspired merchandise.">
+  <meta name="keywords" content="OnlyFreds, FNAF merch, Freddy Fazbear plushies, Five Nights at Freddy's shop, animatronic collectibles, Fredverse, cursed freddies">
+  <meta name="author" content="OnlyFreds Team">
+  <meta name="robots" content="index, follow">
+  
+  <link rel="canonical" href="https://onlyfreds.fun/about">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://onlyfreds.fun/about">
+  <meta property="og:title" content="About OnlyFreds | The Home of Chaos & Plushies">
+  <meta property="og:description" content="Join the Fredverse. We bridge the gap between digital nightmares and plushy reality with exclusive FNAF-inspired gear.">
+  <meta property="og:image" content="https://onlyfreds.fun/img/OnlyFreds_logo.png">
+
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://onlyfreds.fun/about">
+  <meta property="twitter:title" content="About OnlyFreds | Premium FNAF Merch">
+  <meta property="twitter:description" content="Discover the story behind OnlyFreds. Shop the weirdest and best Freddy Fazbear merchandise online.">
+  <meta property="twitter:image" content="https://onlyfreds.fun/img/OnlyFreds_logo.png">
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css"/>
   <link rel="icon" type="image/png" href="/img/OnlyFreds_logo.png"/>
+  
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "OnlyFreds",
+    "url": "https://onlyfreds.fun",
+    "logo": "https://onlyfreds.fun/img/OnlyFreds_logo.png",
+    "description": "Your one-stop shop for exclusive Freddy vibes and Five Nights at Freddy's inspired merchandise.",
+    "foundingDate": "2023",
+    "founder": {
+      "@type": "Person",
+      "name": "The Developer"
+    },
+    "sameAs": [
+      "https://twitter.com/onlyfreds",
+      "https://instagram.com/onlyfreds"
+    ]
+  }
+  </script>
+
+  <style>
+    /* Custom Scroll Animation Styles */
+    .fade-in-section {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1s ease-out, transform 1s ease-out;
+      will-change: opacity, transform;
+    }
+    .fade-in-section.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+    
+    /* Section Spacing Helpers */
+    .section-spacer {
+      padding: 6rem 0;
+    }
+  </style>
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
 
   <%- include("partials/navbar") %>
 
-  <section class="container py-5">
-    <h1 class="text-center display-5 fw-bold mb-4">🧸 About OnlyFreds</h1>
-    <div class="card shadow p-4">
-      <p>
-        Welcome to <strong>OnlyFreds</strong> — inspired by <em>Five Nights at Freddy’s</em> and fueled by chaos.  
-        We sell all types of Freds: digital Freds, plush Freds, cursed Freds, and yes… even <strong>real Freds™</strong>.
-      </p>
-      <p>
-        Whether you want to survive the night at Freddy Fazbear’s Pizza or flex your Sigma Rizz with exclusive Fred merch,  
-        we gotchu covered.
-      </p>
-      <p class="fst-italic">Remember: It’s never just one night with Fred...</p>
+  <section class="hero text-white text-center section-spacer fade-in-section">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <span class="badge bg-light text-primary mb-3 px-3 py-2 rounded-pill fw-bold text-uppercase">Who we are</span>
+          <h1 class="display-3 fw-bold mb-4">What is OnlyFreds?</h1>
+          <p class="lead fs-4">
+            What is OnlyFreds? OnlyFreds was created to answer a single problem: the lack of quality gear for the lovely, nightmarish <strong>Freddy Fazbear</strong> and his many variants. It is a space designed for <em>Freds alike</em>. We make it easy for both Freds and non-Freds to secure t-shirts, caps, plushies, and more—whether you are treating yourself or buying for a special <strong>Fred</strong> in your life.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="bg-white section-spacer fade-in-section">
+    <div class="container">
+      <div class="row align-items-center gx-5">
+        <div class="col-md-6 order-md-2 mb-4 mb-md-0">
+            <div class="p-4 bg-light rounded-4 text-center border shadow-sm h-100 d-flex align-items-center justify-content-center" style="min-height: 300px;">
+                <img src="/img/OnlyFreds_mission.png" alt="OnlyFreds Mission" class="img-fluid" style="max-height: 250px; width: auto;">
+            </div>
+        </div>
+        <div class="col-md-6 order-md-1">
+          <h2 class="display-5 fw-bold text-primary mb-4">Our Mission</h2>
+          <p class="lead text-secondary lh-lg">
+            To provide the highest quality <strong>Freddy Fazbear collectibles</strong> to every household. We strive to innovate, entertain, and occasionally frighten our valued customers with merchandise that authentically captures the chaos of the franchise you know and love.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-light section-spacer fade-in-section">
+    <div class="container">
+        <div class="row align-items-center gx-5">
+            <div class="col-md-6 mb-4 mb-md-0">
+                <div class="p-4 bg-white rounded-4 text-center border shadow-sm h-100 d-flex align-items-center justify-content-center" style="min-height: 300px;">
+                    <img src="/img/OnlyFreds_vision.png" alt="OnlyFreds Vision" class="img-fluid" style="max-height: 250px; width: auto;">
+                </div>
+            </div>
+            <div class="col-md-6">
+              <h2 class="display-5 fw-bold text-primary mb-4">Our Vision</h2>
+              <p class="lead text-secondary lh-lg">
+                A world where everyone owns a Fred. We envision a future filled with laughter, community, and premium <strong>animatronic-inspired gear</strong> that brings fans together across the globe.
+              </p>
+            </div>
+          </div>
+    </div>
+  </section>
+
+  <section class="bg-white section-spacer fade-in-section">
+    <div class="container text-center">
+      <h2 class="display-5 fw-bold text-dark mb-5">Meet the Developer</h2>
+      <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-6">
+          <div class="card border-0 shadow-lg rounded-4 overflow-hidden h-100 transition-hover">
+            <div class="card-body p-5">
+              <div class="mb-4">
+                <img src="https://github.com/Kashukenz/Kash/blob/main/me.png?raw=true" class="rounded-circle shadow border border-4 border-white" alt="OnlyFreds Lead Developer Profile Picture" width="250" height="250">
+              </div>
+              <h3 class="fw-bold mb-1">Alfredo II "Fredo" H. Fajardo</h3>
+              <p class="text-primary fw-bold text-uppercase small mb-4">Lead Developer & Fred Enthusiast</p>
+              <p class="text-muted">
+                Speaking as a 'Fred' myself, I’ve always felt there simply isn’t enough merchandise for the lovely, fantastic, and nightmarish Freddy Fazbear and his many variants. That’s why I’ve made it my mission to create a space exclusively for us: a place for Only Freds (haha, get it?). It’s Freddy merch, for Freddies alike. <br> Always remember: <br><i><strong>It's never just one night with Fred.</strong></i>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-spacer hero text-white text-center fade-in-section">
+    <div class="container">
+      <div class="py-5">
+        <h2 class="display-4 fw-bold mb-4">Ready to get your Fred?</h2>
+        <p class="lead mb-5 opacity-75">Don't let your dreams be dreams. Join the family today and grab your exclusive merch.</p>
+        <a href="/products" class="btn btn-light btn-lg rounded-pill fw-bold px-5 py-3 shadow hover-scale" aria-label="Go to products page">
+            Shop Now 🛒
+        </a>
+      </div>
     </div>
   </section>
 
   <%- include("partials/footer") %>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/script/navbar.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1 // Trigger when 10% of the element is visible
+      };
+
+      const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target); // Only animate once
+          }
+        });
+      }, observerOptions);
+
+      document.querySelectorAll('.fade-in-section').forEach(section => {
+        observer.observe(section);
+      });
+    });
+  </script>
 </body>
 </html>

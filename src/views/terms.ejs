@@ -1,42 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Terms & Conditions - OnlyFreds</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <meta name="description" content="Terms and Conditions for OnlyFreds. Read about our liability waivers regarding jumpscares and pizza-related incidents.">
+  <meta name="robots" content="noindex, follow"> <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css"/>
   <link rel="icon" type="image/png" href="/img/OnlyFreds_logo.png"/>
+
+  <style>
+    .fade-in-section {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1s ease-out, transform 1s ease-out;
+      will-change: opacity, transform;
+    }
+    .fade-in-section.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+    .section-spacer { padding: 5rem 0; }
+    .legal-text { text-align: justify; }
+  </style>
 </head>
 <body class="d-flex flex-column min-vh-100 bg-light">
 
   <%- include("partials/navbar") %>
 
-  <section class="container py-5">
-    <h1 class="text-center display-5 fw-bold mb-4">📜 OnlyFreds Terms & Conditions</h1>
-    <div class="card shadow p-4">
-      <h4>1. Acceptance of Chaos</h4>
-      <p>By using OnlyFreds, you agree that your braincells may permanently decrease. Side effects may include: random "skibidi" references, unexplained Sigma mindset, and occasional rizz attempts.</p>
+  <section class="hero text-white text-center py-5 fade-in-section">
+    <div class="container">
+      <h1 class="display-4 fw-bold">Terms of Service</h1>
+      <p class="lead">Last Updated: 1987 (The Bite Edition)</p>
+    </div>
+  </section>
 
-      <h4>2. Payment in Exposure</h4>
-      <p>We don’t accept money. You pay us with <strong>likes, retweets, and vibes</strong>. If you thought this was a serious e-commerce site… bro, that’s on you 💀.</p>
+  <section class="section-spacer fade-in-section">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-10">
+          <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="card-body p-5">
+              
+              <h2 class="fw-bold text-primary mb-4">1. Acceptance of Terms</h2>
+              <p class="text-muted legal-text mb-4">
+                By accessing and using <strong>OnlyFreds</strong> (hereinafter referred to as "The Service" or "The Pizzeria"), you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do not agree, please exit the building immediately before the doors lock automatically at midnight.
+              </p>
 
-      <h4>3. Intellectual Property (lol)</h4>
-      <p>Anything you post here instantly becomes ours. Your memes? Our memes now. Your Freds? Also our Freds. We own the Fredverse™.</p>
+              <h2 class="fw-bold text-primary mb-4">2. Liability Waiver</h2>
+              <p class="text-muted legal-text mb-4">
+                OnlyFreds shall not be held liable for any personal injury, loss of sleep, or sudden disappearances occurring while browsing our products. Specifically:
+              </p>
+              <ul class="text-muted mb-4">
+                <li>We are not responsible if purchased plushies move on their own when unobserved.</li>
+                <li>Any "hallucinations" of gold-colored bears are strictly the user's responsibility.</li>
+                <li>OnlyFreds disclaims all liability for electrical surges, power outages, or animatronic malfunctions resulting in "The Bite."</li>
+              </ul>
 
-      <h4>4. No Refunds</h4>
-      <p>You clicked "Add to Cart" on a JPEG of Fred? Congrats, king 👑. No refunds. Crying in the club won’t help.</p>
+              <h2 class="fw-bold text-primary mb-4">3. Product Descriptions</h2>
+              <p class="text-muted legal-text mb-4">
+                We attempt to be as accurate as possible. However, OnlyFreds does not warrant that product descriptions are error-free. A "Cute Plushie" may legally be defined as a "Cursed Artifact" in some jurisdictions. Purchase at your own risk.
+              </p>
 
-      <h4>5. Governing Law</h4>
-      <p>This site is governed by <em>Ohio law</em> and the vibes of the Discord server at 3AM.</p>
+              <h2 class="fw-bold text-primary mb-4">4. Payment & Refunds</h2>
+              <p class="text-muted legal-text mb-4">
+                All sales are final. Once you adopt a Fred, it is bound to you forever. 
+                <br><br>
+                <strong>Refund Policy:</strong> Refunds are only issued if the product actively tries to dismantle your computer. Proof of sentient behavior (video evidence) is required for all claims.
+              </p>
 
-      <h4>6. Final Clause</h4>
-      <p>If you read this far, you are a certified Fred Enjoyer™. Touch grass immediately 🌱.</p>
+              <h2 class="fw-bold text-primary mb-4">5. User Conduct</h2>
+              <p class="text-muted legal-text mb-4">
+                Users agree not to use the site to:
+              </p>
+              <ul class="text-muted mb-4">
+                <li>Upload viruses, malware, or remnants of William Afton.</li>
+                <li>Harass the night guard in the comment sections.</li>
+                <li>Attempt to reverse-engineer the animatronic AI.</li>
+              </ul>
+
+              <h2 class="fw-bold text-primary mb-4">6. Governing Law</h2>
+              <p class="text-muted legal-text mb-0">
+                These Terms shall be governed by the laws of <strong>Utah</strong> (or wherever the Pizzeria is currently hiding), without regard to its conflict of law provisions. Any disputes shall be resolved via a flashlight tag match in the main dining area.
+              </p>
+
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
   <%- include("partials/footer") %>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/script/navbar.js"></script>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) entry.target.classList.add('is-visible');
+        });
+      }, { threshold: 0.1 });
+      document.querySelectorAll('.fade-in-section').forEach(section => observer.observe(section));
+    });
+  </script>
 </body>
 </html>

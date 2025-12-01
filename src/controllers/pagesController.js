@@ -1,3 +1,13 @@
+const verifyTurnstile = require("../utils/turnstileVerify");
+const SibApiV3Sdk = require("@getbrevo/brevo");
+
+// Initialize Brevo Client (same as authController)
+const brevoClient = new SibApiV3Sdk.TransactionalEmailsApi();
+brevoClient.setApiKey(
+  SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY
+);
+
 //Static Product Items:
 const freddyProducts = [
   {
@@ -37,6 +47,7 @@ const freddyProducts = [
     imgUrl: "https://www.pngkey.com/png/full/226-2263809_funtime-freddy-five-nights-at-freddys.png",
   }
 ];
+
 exports.getIndex = (req, res) => {
   res.render("index", {
     user: req.session.user || null,
@@ -52,8 +63,66 @@ exports.getAbout = (req, res) => {
   res.render("about", { user: req.session.user || null });
 };
 
+// GET Contact Page
 exports.getContact = (req, res) => {
-  res.render("contact", { user: req.session.user || null });
+  res.render("contact", { 
+    user: req.session.user || null,
+    success: null,
+    error: null 
+  });
+};
+
+// POST Contact Form
+exports.postContact = async (req, res) => {
+  const { name, email, subject, message } = req.body;
+  const token = req.body['cf-turnstile-response'];
+
+  // 1. Verify Turnstile
+  const result = await verifyTurnstile(token, req.ip);
+  if (!result.success) {
+    return res.render("contact", { 
+      user: req.session.user || null, 
+      error: "Verification failed. Please try again.",
+      success: null
+    });
+  }
+
+  try {
+    // 2. Send Email via Brevo
+    // We send it TO the admin (you), FROM the system, with Reply-To set to the user
+    const emailData = {
+      sender: { email: "no-reply@onlyfreds.fun", name: "OnlyFreds Contact Form" },
+      to: [{ email: "20237660@s.ubaguio.edu" }], // Your email address from contact.ejs
+      replyTo: { email: email, name: name },
+      subject: `[Contact Form] ${subject}`,
+      htmlContent: `
+        <h3>New Message from OnlyFreds Contact Form</h3>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Subject:</strong> ${subject}</p>
+        <hr>
+        <p><strong>Message:</strong></p>
+        <p>${message.replace(/\n/g, '<br>')}</p>
+      `,
+    };
+
+    await brevoClient.sendTransacEmail(emailData);
+
+    // 3. Render Success
+    res.render("contact", { 
+      user: req.session.user || null,
+      success: "Message sent successfully! We'll get back to you soon.",
+      error: null
+    });
+
+  } catch (err) {
+    console.error("Contact Form Error:", err);
+    res.render("contact", { 
+      user: req.session.user || null,
+      error: "Something went wrong sending your message. Please try again.",
+      success: null
+    });
+  }
 };
 
 exports.getTerms = (req, res) => {
@@ -63,7 +132,3 @@ exports.getTerms = (req, res) => {
 exports.getPrivacy = (req, res) => {
   res.render("privacy", { user: req.session.user || null });
 };
-
-
-
-

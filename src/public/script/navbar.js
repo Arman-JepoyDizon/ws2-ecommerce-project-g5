@@ -1,21 +1,31 @@
 let lastScroll = 0;
 const navbar = document.querySelector('.navbar');
 const collapse = document.querySelector('#navbarNav'); // Bootstrap collapse div
+const scrollThreshold = 100; // Amount of pixels to scroll before the navbar starts hiding
 
 window.addEventListener('scroll', () => {
   const currentScroll = window.pageYOffset;
 
-  // Only hide/show if the mobile menu is collapsed
+  // Only apply logic if the mobile menu is NOT expanded
   const isExpanded = collapse.classList.contains('show');
+  
   if (!isExpanded) {
-    if (currentScroll > lastScroll) {
-      // scrolling down -> hide
-      navbar.classList.remove('show');
-      navbar.style.top = '-100px';
-    } else {
-      // scrolling up -> show
+    // 1. If we are near the top (less than threshold), always show the navbar
+    if (currentScroll < scrollThreshold) {
       navbar.classList.add('show');
       navbar.style.top = '0';
+    } 
+    // 2. If we are past the threshold, apply the hide/show logic
+    else {
+      if (currentScroll > lastScroll) {
+        // Scrolling down -> Hide
+        navbar.classList.remove('show');
+        navbar.style.top = '-100px';
+      } else {
+        // Scrolling up -> Show
+        navbar.classList.add('show');
+        navbar.style.top = '0';
+      }
     }
   }
 
