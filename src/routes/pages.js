@@ -11,6 +11,9 @@ router.get("/product/:id", pagesController.getProductDetail);
 // Sitemap (SEO)
 router.get("/sitemap.xml", pagesController.getSitemap);
 
+//Robots
+router.get("/robots.txt", pagesController.getRobots);
+
 // Static Pages
 router.get("/products", pagesController.getProducts);
 router.get("/about", pagesController.getAbout);

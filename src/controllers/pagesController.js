@@ -171,13 +171,13 @@ exports.getProductDetail = async (req, res) => {
   }
 };
 
-// --- SITEMAP ---
+// --- SITEMAP.XML ---
 exports.getSitemap = async (req, res) => {
   try {
     const db = req.app.locals.db;
     const baseUrl = process.env.BASE_URL || 'https://onlyfreds.fun';
 
-    // 1. Define Static Routes
+    // 1. Static Routes
     const urls = [
       { loc: '/', changefreq: 'daily', priority: 1.0 },
       { loc: '/products', changefreq: 'daily', priority: 0.8 },
@@ -189,7 +189,7 @@ exports.getSitemap = async (req, res) => {
       { loc: '/auth/register', changefreq: 'monthly', priority: 0.4 },
     ];
 
-    // 2. Add Dynamic Category Routes
+    // 2. Categories
     const categories = await db.collection("categories").find().toArray();
     categories.forEach(cat => {
       urls.push({
@@ -199,7 +199,7 @@ exports.getSitemap = async (req, res) => {
       });
     });
 
-    // 3. Add Dynamic Product Routes (Optional, but good for SEO)
+    // 3. Products
     const products = await db.collection("products").find().toArray();
     products.forEach(prod => {
       urls.push({
@@ -223,12 +223,22 @@ exports.getSitemap = async (req, res) => {
 
     xml += '</urlset>';
 
-    // 5. Send Response
-    res.header('Content-Type', 'application/xml');
+    res.header('Content-Type', 'text/xml'); // Changed to text/xml for better compatibility
     res.send(xml);
 
   } catch (err) {
-    console.error("Sitemap generation error:", err);
+    console.error("Sitemap error:", err);
     res.status(500).end();
   }
+};
+
+// --- ROBOTS.TXT ---
+exports.getRobots = (req, res) => {
+  const baseUrl = process.env.BASE_URL || 'https://onlyfreds.fun';
+  const content = `User-agent: *
+Allow: /
+Sitemap: ${baseUrl}/sitemap.xml`;
+
+  res.type('text/plain');
+  res.send(content);
 };
