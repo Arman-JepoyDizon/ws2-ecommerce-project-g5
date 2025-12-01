@@ -235,8 +235,12 @@ exports.getSitemap = async (req, res) => {
 // --- ROBOTS.TXT ---
 exports.getRobots = (req, res) => {
   const baseUrl = process.env.BASE_URL || 'https://onlyfreds.fun';
-  const content = `User-agent: *
+const content = `User-agent: *
 Allow: /
+Disallow: /dashboard/
+Disallow: /auth/verify/
+Disallow: /auth/reset/
+Disallow: /auth/logout
 Sitemap: ${baseUrl}/sitemap.xml`;
 
   res.type('text/plain');
