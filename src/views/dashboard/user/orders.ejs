@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders - OnlyFreds</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+  <%- include("../../partials/navbar") %>
+
+  <div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Purchase History</h2>
+        <a href="/dashboard/customer" class="btn btn-outline-secondary rounded-pill">Back to Dashboard</a>
+    </div>
+
+    <ul class="nav nav-pills mb-4 gap-2" id="pills-tab" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active rounded-pill" id="pills-topay-tab" data-bs-toggle="pill" href="#pills-topay">To Pay</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link rounded-pill" id="pills-toship-tab" data-bs-toggle="pill" href="#pills-toship">To Ship</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link rounded-pill" id="pills-toreceive-tab" data-bs-toggle="pill" href="#pills-toreceive">To Receive</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link rounded-pill" id="pills-completed-tab" data-bs-toggle="pill" href="#pills-completed">Completed</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link rounded-pill" id="pills-cancelled-tab" data-bs-toggle="pill" href="#pills-cancelled">Cancelled</a>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="pills-tabContent">
+        
+        <% 
+          const tabs = [
+            { id: 'topay', key: 'to_pay', label: 'To Pay' },
+            { id: 'toship', key: 'to_ship', label: 'To Ship' },
+            { id: 'toreceive', key: 'to_receive', label: 'To Receive' },
+            { id: 'completed', key: 'completed', label: 'Completed' },
+            { id: 'cancelled', key: 'cancelled', label: 'Cancelled' }
+          ];
+        %>
+
+        <% tabs.forEach((tab, index) => { %>
+            <div class="tab-pane fade <%= index === 0 ? 'show active' : '' %>" id="pills-<%= tab.id %>">
+                <% if (ordersByStatus[tab.key].length === 0) { %>
+                    <div class="text-center py-5 text-muted">
+                        <div class="fs-1 mb-2">📭</div>
+                        <p>No orders found in <%= tab.label %>.</p>
+                    </div>
+                <% } else { %>
+                    <% ordersByStatus[tab.key].forEach(order => { %>
+                        <div class="card border-0 shadow-sm rounded-4 mb-3">
+                            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                                <div class="small text-muted">
+                                    Order ID: <span class="font-monospace"><%= order.orderId %></span>
+                                    <span class="mx-2">|</span>
+                                    <%= new Date(order.createdAt).toLocaleDateString() %>
+                                </div>
+                                <span class="badge bg-light text-dark border"><%= tab.label.toUpperCase() %></span>
+                            </div>
+                            <div class="card-body">
+                                <% order.items.forEach(item => { %>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <img src="/img/OnlyFreds_logo.png" width="60" class="rounded border me-3"> <div>
+                                            <h6 class="mb-0 fw-bold"><%= item.name %></h6>
+                                            <small class="text-muted">x<%= item.quantity %></small>
+                                        </div>
+                                        <div class="ms-auto fw-bold">
+                                            ₱<%= item.price.toFixed(2) %>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                                <hr>
+                                <div class="d-flex justify-content-end align-items-center">
+                                    <span class="me-2">Order Total:</span>
+                                    <h4 class="text-primary fw-bold mb-0">₱<%= order.totalAmount.toFixed(2) %></h4>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } %>
+            </div>
+        <% }) %>
+
+    </div>
+
+  </div>
+
+  <%- include("../../partials/footer") %>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

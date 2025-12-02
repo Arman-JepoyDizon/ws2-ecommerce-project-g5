@@ -85,6 +85,8 @@
       
       const dashboardRoutes = require("./routes/dashboard");
       app.use("/dashboard", dashboardRoutes);
+      const userRoutes = require("./routes/user");
+      app.use("/user", userRoutes);
       const categoryRoutes = require("./routes/categories");
       app.use("/dashboard/admin/categories", categoryRoutes);
       const productsRouter = require("./routes/products");

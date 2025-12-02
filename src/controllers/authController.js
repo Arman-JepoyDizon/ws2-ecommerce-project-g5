@@ -26,7 +26,7 @@ exports.postRegister = async (req, res) => {
   
   const { firstName, lastName, email, password, confirmPassword } = req.body;
 
-  // --- NEW: Password Validation ---
+  // Password Validation
   if (password !== confirmPassword) {
     return res.render("auth/register", { error: "Passwords do not match." });
   }
@@ -37,7 +37,6 @@ exports.postRegister = async (req, res) => {
         error: "Password must be at least 8 characters and include 1 uppercase, 1 lowercase, 1 number, and 1 special character." 
     });
   }
-  // --------------------------------
 
   try {
     // Check duplicate
@@ -117,24 +116,20 @@ exports.verifyEmail = async (req, res) => {
 };
 
 // GET Login
-// GET Login
 exports.getLogin = (req, res) => {
   let error = null;
   let message = null;
 
-  // Handle Reset Success Message
   if (req.query.reset === "success") {
     message = "✅ Password has been reset successfully. You can now log in.";
   }
 
-  // Handle Logout Messages
   if (req.query.logout === "inactive") {
      message = "⚠️ You’ve been logged out due to inactivity. Please log in again.";
   } else if (req.query.logout === "manual") {
      message = "✅ You have successfully logged out.";
   }
 
-  // Handle Auth Middleware Errors (e.g. "Please log in to add to cart")
   if (req.query.error) {
     error = req.query.error;
   }
@@ -152,24 +147,25 @@ exports.postLogin = async (req, res) => {
   const users = db.collection("users");
   const token = req.body['cf-turnstile-response'];
   const result = await verifyTurnstile(token, req.ip);
+  
   if (!result.success) {
-    return res.status(400).render('auth/login', { error: 'Verification failed. Please try again.' });
+    return res.status(400).render('auth/login', { error: 'Verification failed. Please try again.', message: null });
   }
   const { email, password } = req.body;
 
   const user = await users.findOne({ email });
-  if (!user) return res.render("auth/login", { error: "Invalid Credentials." });
+  if (!user) return res.render("auth/login", { error: "Invalid Credentials.", message: null });
 
   if (user.accountStatus !== "active") {
-    return res.render("auth/login", { error: "Invalid Credentials." });
+    return res.render("auth/login", { error: "Invalid Credentials.", message: null });
   }
 
   if (!user.isEmailVerified) {
-    return res.render("auth/login", { error: "Invalid Credentials." });
+    return res.render("auth/login", { error: "Invalid Credentials.", message: null });
   }
 
   const validPass = await bcrypt.compare(password, user.passwordHash);
-  if (!validPass) return res.render("auth/login", { error: "Invalid Credentials." });
+  if (!validPass) return res.render("auth/login", { error: "Invalid Credentials.", message: null });
 
   // Set session
   req.session.user = {
@@ -192,6 +188,7 @@ exports.logout = (req, res) => {
     res.redirect("/auth/login?logout=manual");
   });
 };
+
 // GET Forgot Password Page
 exports.getForgotPassword = (req, res) => {
   res.render("auth/forgot", { error: null, message: null });
@@ -213,23 +210,19 @@ exports.postForgotPassword = async (req, res) => {
   try {
     const user = await users.findOne({ email });
     if (!user) {
-
       return res.render("auth/forgot", { error: null, message: "If an account with that email exists, a reset link has been sent." });
     }
 
-
     const resetToken = uuidv4();
     const tokenExpiry = Date.now() + 1000 * 60 * 60; // 1 hour
-
 
     await users.updateOne(
       { email },
       { $set: { verificationToken: resetToken, tokenExpiry } }
     );
 
-
     const emailData = {
-      sender: { email: "20237660@onlyfreds.fun", name: "OnlyFreds" },
+      sender: { email: "no-reply@onlyfreds.fun", name: "OnlyFreds" },
       to: [{ email }],
       subject: "Reset your OnlyFreds password",
       htmlContent: `
@@ -251,7 +244,7 @@ exports.postForgotPassword = async (req, res) => {
   }
 };
 
-
+// GET Reset Password Page
 exports.getResetPassword = async (req, res) => {
   const db = req.app.locals.db;
   const users = db.collection("users");
@@ -260,11 +253,9 @@ exports.getResetPassword = async (req, res) => {
   try {
     const user = await users.findOne({ verificationToken: token });
 
-
     if (!user || user.tokenExpiry < Date.now()) {
       return res.render("auth/verify", { message: "Invalid or expired password reset token." });
     }
-
 
     res.render("auth/reset", { error: null, token: token });
 
@@ -274,7 +265,7 @@ exports.getResetPassword = async (req, res) => {
   }
 };
 
-
+// POST Reset Password
 exports.postResetPassword = async (req, res) => {
   const db = req.app.locals.db;
   const users = db.collection("users");
@@ -298,7 +289,6 @@ exports.postResetPassword = async (req, res) => {
       return res.render("auth/verify", { message: "Invalid or expired password reset token." });
     }
 
-
     const passwordHash = await bcrypt.hash(password, 10);
 
     await users.updateOne(
@@ -310,7 +300,6 @@ exports.postResetPassword = async (req, res) => {
         } 
       }
     );
-
 
     res.redirect("/auth/login?reset=success");
 
