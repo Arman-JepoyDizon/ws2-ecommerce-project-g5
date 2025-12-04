@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= product ? 'Edit' : 'New' %> Product - OnlyFreds</title>
+  <title><%= (product && product.productId) ? 'Edit' : 'New' %> Product - OnlyFreds</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
 </head>
@@ -16,7 +16,7 @@
         <div class="col-12 col-md-8 col-lg-7">
             
             <div class="text-center mb-4">
-                <h2 class="fw-bold"><%= product ? 'Edit Product' : 'Add Product' %></h2>
+                <h2 class="fw-bold"><%= (product && product.productId) ? 'Edit Product' : 'Add Product' %></h2>
                 <p class="text-muted">Add a new item to the shop</p>
             </div>
 
@@ -25,7 +25,7 @@
             <% } %>
 
             <div class="card border-0 shadow rounded-4 p-4 p-md-5">
-                <form action="<%= product && product.productId ? '/dashboard/admin/products/edit/' + product.productId : '/dashboard/admin/products/new' %>" method="POST">
+                <form action="<%= (product && product.productId) ? '/dashboard/admin/products/edit/' + product.productId : '/dashboard/admin/products/new' %>" method="POST">
                     
                     <div class="mb-3">
                         <label class="form-label fw-bold text-secondary small text-uppercase">Product Name</label>
@@ -83,7 +83,7 @@
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm fw-bold">
-                            <%= product && product.productId ? 'Save Changes' : 'Create Product' %>
+                            <%= (product && product.productId) ? 'Save Changes' : 'Create Product' %>
                         </button>
                         <a href="/dashboard/admin/products" class="btn btn-light btn-lg rounded-pill text-muted fw-bold">Cancel</a>
                     </div>
@@ -112,7 +112,8 @@
             simplePriceSection.classList.add('d-none');
             variantsSection.classList.remove('d-none');
             mainPriceInput.removeAttribute('required');
-
+            
+            // Add one row if empty
             if (variantsContainer.children.length === 0) {
                 addVariantRow();
             }
@@ -144,6 +145,7 @@
 
     hasVariantsCheckbox.addEventListener('change', toggleSections);
 
+    // Init on load
     toggleSections();
   </script>
 </body>

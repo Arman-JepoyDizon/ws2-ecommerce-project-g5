@@ -1,3 +1,4 @@
+// src/controllers/productController.js
 const { v4: uuidv4 } = require("uuid");
 
 // List all products (With Search & Filter)
@@ -5,11 +6,9 @@ exports.getList = async (req, res) => {
   const db = req.app.locals.db;
   const { search, category } = req.query;
   
-  // 1. Build Query
   let query = {};
 
   if (search) {
-    // Case-insensitive search for name
     query.name = { $regex: search, $options: "i" };
   }
 
@@ -17,11 +16,9 @@ exports.getList = async (req, res) => {
     query.categoryId = category;
   }
   
-  // 2. Fetch Data
   const products = await db.collection("products").find(query).toArray();
   const categories = await db.collection("categories").find().toArray();
   
-  // Create a map for quick lookup: categoryId -> categoryName
   const categoryMap = {};
   categories.forEach(cat => {
     categoryMap[cat.categoryId] = cat.name;
@@ -30,16 +27,15 @@ exports.getList = async (req, res) => {
   res.render("dashboard/products/index", {
     user: req.session.user,
     products,
-    categories, // Pass categories for the filter dropdown
+    categories, 
     categoryMap,
-    search: search || "",      // Keep search term in input
-    selectedCategory: category || "", // Keep category selected
+    search: search || "",      
+    selectedCategory: category || "", 
     success: req.query.success || null,
     error: req.query.error || null
   });
 };
 
-// Show Create Form
 exports.getCreate = async (req, res) => {
   const db = req.app.locals.db;
   const categories = await db.collection("categories").find().toArray();
@@ -52,7 +48,6 @@ exports.getCreate = async (req, res) => {
   });
 };
 
-// Helper to parse variants
 function parseVariants(body) {
     let variants = [];
     if (body.hasVariants === 'on') {
@@ -75,7 +70,13 @@ function parseVariants(body) {
     return variants;
 }
 
-// Handle Create Submission (With Validation)
+// NEW Helper: Check for duplicate variant names
+function hasDuplicateVariants(variants) {
+    const names = variants.map(v => v.name.toLowerCase().trim());
+    return new Set(names).size !== names.length;
+}
+
+// Handle Create Submission (With Duplicate Check)
 exports.postCreate = async (req, res) => {
   const db = req.app.locals.db;
   const { name, description, price, categoryId, imgUrl, hasVariants } = req.body;
@@ -87,16 +88,39 @@ exports.postCreate = async (req, res) => {
       finalPrice = Math.min(...variants.map(v => v.price));
   }
 
-  // Validation
+  // Validation Container
   let error = null;
-  if (!name || !categoryId) error = "Name and Category are required.";
-  else if (!hasVariants && (isNaN(finalPrice) || finalPrice < 0)) error = "Price must be a valid positive number.";
+
+  // 1. Basic Validation
+  if (!name || !categoryId) {
+      error = "Name and Category are required.";
+  } 
+  else if (!hasVariants && (isNaN(finalPrice) || finalPrice < 0)) {
+      error = "Price must be a valid positive number.";
+  }
   
+  // 2. Duplicate Variant Check
+  else if (hasVariants === 'on' && hasDuplicateVariants(variants)) {
+      error = "Variant names must be unique.";
+  }
+  
+  // 3. Duplicate Product Name Check
+  else {
+      const existingProduct = await db.collection("products").findOne({ 
+          name: { $regex: `^${name}$`, $options: 'i' } // Case-insensitive check
+      });
+      if (existingProduct) {
+          error = `A product with the name "${name}" already exists.`;
+      }
+  }
+  
+  // If Error: Re-render form with user input
   if (error) {
     const categories = await db.collection("categories").find().toArray();
     return res.render("dashboard/products/form", {
       user: req.session.user,
-      product: { ...req.body, variants },
+      // Pass back the body so the user doesn't lose text
+      product: { ...req.body, variants }, 
       categories,
       error
     });
@@ -138,7 +162,7 @@ exports.getEdit = async (req, res) => {
   });
 };
 
-// Handle Edit Submission (With Validation)
+// Handle Edit Submission (With Duplicate Check)
 exports.postEdit = async (req, res) => {
   const db = req.app.locals.db;
   const productId = req.params.id;
@@ -151,11 +175,40 @@ exports.postEdit = async (req, res) => {
       finalPrice = Math.min(...variants.map(v => v.price));
   }
 
-  // Validation
-  if (!name || (!hasVariants && (isNaN(finalPrice) || finalPrice < 0))) {
-      // For edit, it's simpler to redirect with error than re-render entire state manually
-      // or re-fetch product. A quick redirect is often acceptable for admin panels.
-      return res.redirect(`/dashboard/admin/products/edit/${productId}?error=Invalid Input`);
+  let error = null;
+
+  // 1. Basic Validation
+  if (!name || !categoryId) {
+      error = "Name and Category are required.";
+  }
+  else if (!hasVariants && (isNaN(finalPrice) || finalPrice < 0)) {
+      error = "Price must be a valid positive number.";
+  }
+  // 2. Duplicate Variant Check
+  else if (hasVariants === 'on' && hasDuplicateVariants(variants)) {
+      error = "Variant names must be unique.";
+  }
+  // 3. Duplicate Product Name Check (Exclude current ID)
+  else {
+      const existingProduct = await db.collection("products").findOne({ 
+          name: { $regex: `^${name}$`, $options: 'i' },
+          productId: { $ne: productId } // Exclude self
+      });
+      if (existingProduct) {
+          error = `A product with the name "${name}" already exists.`;
+      }
+  }
+
+  // If Error: Re-render form (DO NOT REDIRECT, or data is lost)
+  if (error) {
+      const categories = await db.collection("categories").find().toArray();
+      return res.render("dashboard/products/form", {
+        user: req.session.user,
+        // Merge body with productId so the form action URL remains valid
+        product: { ...req.body, productId, variants }, 
+        categories,
+        error
+      });
   }
 
   await db.collection("products").updateOne(
@@ -177,14 +230,12 @@ exports.postEdit = async (req, res) => {
   res.redirect("/dashboard/admin/products?success=Product Updated Successfully");
 };
 
-// Handle Delete (With Safe Delete Check)
+// Handle Delete
 exports.postDelete = async (req, res) => {
   const db = req.app.locals.db;
   const productId = req.params.id;
 
   try {
-    // 1. Check if product is in any order
-    // We check the 'items.productId' field in the orders collection
     const usageCount = await db.collection("orders").countDocuments({
         "items.productId": productId
     });
@@ -193,7 +244,6 @@ exports.postDelete = async (req, res) => {
         return res.redirect(`/dashboard/admin/products?error=Cannot delete this product because it is already used in ${usageCount} orders.`);
     }
 
-    // 2. If safe, delete
     await db.collection("products").deleteOne({ productId });
     res.redirect("/dashboard/admin/products?success=Product Deleted Successfully");
 
