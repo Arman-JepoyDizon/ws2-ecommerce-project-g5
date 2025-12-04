@@ -7,19 +7,23 @@
     </button>
 
     <div class="collapse navbar-collapse" id="navbarNav">
-<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+      
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <% if (user && user.role === 'admin') { %>
             <li class="nav-item">
-              <a class="nav-link <%= currentPath === '/dashboard/admin' ? 'active' : '' %>" href="/dashboard/admin">Admin Home</a>
+              <a class="nav-link <%= currentPath === '/products' ? 'active' : '' %>" href="/products">View Shop</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link <%= currentPath.startsWith('/dashboard/admin/products') ? 'active' : '' %>" href="/dashboard/admin/products">Manage Products</a>
+              <a class="nav-link <%= currentPath.startsWith('/dashboard/admin/products') ? 'active' : '' %>" href="/dashboard/admin/products">Products</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link <%= currentPath.startsWith('/dashboard/admin/categories') ? 'active' : '' %>" href="/dashboard/admin/categories">Manage Categories</a>
+              <a class="nav-link <%= currentPath.startsWith('/dashboard/admin/categories') ? 'active' : '' %>" href="/dashboard/admin/categories">Categories</a>
             </li>
-              <li class="nav-item">
-              <a class="nav-link <%= currentPath.startsWith('/dashboard/admin/orders') ? 'active' : '' %>" href="/dashboard/admin/orders">Manage Orders</a>
+            <li class="nav-item">
+              <a class="nav-link <%= currentPath.startsWith('/dashboard/admin/orders') ? 'active' : '' %>" href="/dashboard/admin/orders">Orders</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link <%= currentPath.startsWith('/dashboard/admin/reports') ? 'active' : '' %>" href="/dashboard/admin/reports/sales">Reports</a>
             </li>
         <% } else { %>
             <li class="nav-item">
@@ -37,21 +41,27 @@
         <% } %>
       </ul>
 
-      <div class="d-flex">
+      <div class="d-flex align-items-center">
+        
+        <% if (user && user.role === 'customer') { %>
+            <a href="/cart" class="btn btn-outline-light me-2">
+              🛒Cart
+            </a>
+        <% } %>
+
         <% if (user) { %>
           <% if (user.role === "admin") {%>
             <a href="/dashboard/admin" class="btn btn-outline-light me-2"><%= user.name %> (Admin)</a>
           <% } else { %>
             <a href="/dashboard/customer" class="btn btn-outline-light me-2"><%= user.name %></a>
-            <a class="btn btn-outline-light me-2" href="/cart">Cart 🛒</a>
           <% } %>
-            
             <a href="/auth/logout" class="btn btn-danger">Logout</a>
         <% } else { %>
             <a href="/auth/login" class="btn btn-outline-light me-2">Login</a>
             <a href="/auth/register" class="btn btn-primary">Register</a>
         <% } %>
       </div>
+
     </div>
   </div>
 </nav>

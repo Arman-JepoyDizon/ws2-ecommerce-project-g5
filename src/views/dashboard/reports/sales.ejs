@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales Report - OnlyFreds</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" type="image/png" href="/img/OnlyFreds_logo.png"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    /* Print Styles */
+    @media print {
+        .no-print, .navbar, footer, .btn, form {
+            display: none !important;
+        }
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .container {
+            max-width: 100%;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        body {
+            background-color: white;
+            padding-top: 0;
+        }
+        /* Ensure chart prints */
+        canvas {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+    }
+  </style>
+</head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+  <div class="no-print">
+      <%- include("../../partials/navbar") %>
+  </div>
+
+  <div class="container py-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="fw-bold mb-0">📊 Sales Report</h2>
+        <p class="text-muted mb-0">Performance Overview</p>
+      </div>
+      <div class="d-flex gap-2 no-print">
+        <a href="/dashboard/admin" class="btn btn-outline-secondary rounded-pill">Back</a>
+        <button onclick="window.print()" class="btn btn-dark rounded-pill">Print Report 🖨️</button>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-5 no-print">
+        <div class="card-header bg-white border-0 pt-4 ps-4">
+            <h5 class="fw-bold mb-0">Report Configuration</h5>
+        </div>
+        <div class="card-body p-4">
+            <form action="/dashboard/admin/reports/sales" method="GET" id="reportForm">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Date Range</label>
+                        <input type="text" id="dateRangePicker" name="dateRange" class="form-control bg-light border-0" value="<%= dateRange %>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Order Status</label>
+                        <select name="status" class="form-select bg-light border-0">
+                            <option value="all" <%= status === 'all' ? 'selected' : '' %>>All Statuses</option>
+                            <option value="to_pay" <%= status === 'to_pay' ? 'selected' : '' %>>To Pay</option>
+                            <option value="to_ship" <%= status === 'to_ship' ? 'selected' : '' %>>To Ship</option>
+                            <option value="completed" <%= status === 'completed' ? 'selected' : '' %>>Completed</option>
+                            <option value="cancelled" <%= status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold">Apply</button>
+                    </div>
+                    
+                    <div class="col-md-3 border-start ps-4">
+                        <label class="form-label small fw-bold text-uppercase text-muted">Export Data</label>
+                        <div class="d-flex gap-2">
+                            <a href="/dashboard/admin/reports/sales/export/daily?dateRange=<%= dateRange %>&status=<%= status %>" class="btn btn-success w-100 btn-sm rounded-pill" title="Download Daily Summary">
+                                XLSX (Daily)
+                            </a>
+                            <a href="/dashboard/admin/reports/sales/export/detailed?dateRange=<%= dateRange %>&status=<%= status %>" class="btn btn-success w-100 btn-sm rounded-pill" title="Download Full Order List">
+                                XLSX (Orders)
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-12 d-none d-print-block mb-3">
+            <div class="border p-3 rounded">
+                <strong>Report Range:</strong> <%= dateRange %> <br>
+                <strong>Status Filter:</strong> <%= status.toUpperCase() %>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 rounded-4 bg-primary text-white">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase opacity-75 mb-2">Total Revenue</h6>
+                    <h2 class="fw-bold mb-0">₱<%= totalRevenue.toFixed(2) %></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 rounded-4 bg-white">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase text-muted mb-2">Total Orders</h6>
+                    <h2 class="fw-bold mb-0 text-dark"><%= totalOrders %></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 rounded-4 bg-white">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase text-muted mb-2">Avg. Order Value</h6>
+                    <h2 class="fw-bold mb-0 text-dark">
+                        ₱<%= totalOrders > 0 ? (totalRevenue / totalOrders).toFixed(2) : '0.00' %>
+                    </h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4 page-break">
+        <div class="card-header bg-white border-0 pt-4 ps-4">
+            <h5 class="fw-bold mb-0">Daily Sales Trend</h5>
+        </div>
+        <div class="card-body p-4">
+            <canvas id="salesReportChart" style="max-height: 300px;"></canvas>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-0 pt-4 ps-4 pb-3">
+            <h5 class="fw-bold mb-0">Daily Breakdown</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3">Date</th>
+                        <th class="py-3 text-center">Orders Count</th>
+                        <th class="pe-4 py-3 text-end">Total Sales</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (dailySales.length > 0) { %>
+                        <% dailySales.forEach(day => { %>
+                            <tr>
+                                <td class="ps-4"><%= day.date %></td>
+                                <td class="text-center"><%= day.orders %></td>
+                                <td class="pe-4 text-end fw-bold">₱<%= day.sales.toFixed(2) %></td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr><td colspan="3" class="text-center py-4">No data found.</td></tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+  </div>
+
+  <div class="no-print">
+      <%- include("../../partials/footer") %>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+  <script>
+    // Init Date Picker
+    flatpickr("#dateRangePicker", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        defaultDate: ["<%= dateRange.split(' to ')[0] %>", "<%= dateRange.split(' to ')[1] %>"]
+    });
+
+    // Init Chart
+    const ctx = document.getElementById('salesReportChart').getContext('2d');
+    const dailyData = <%- JSON.stringify(dailySales) %>;
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dailyData.map(d => d.date),
+            datasets: [{
+                label: 'Sales (₱)',
+                data: dailyData.map(d => d.sales),
+                backgroundColor: '#0d6efd',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+  </script>
+</body>
+</html>

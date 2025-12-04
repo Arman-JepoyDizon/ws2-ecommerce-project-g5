@@ -11,8 +11,7 @@ router.post("/profile", userController.updateProfile);
 
 // Orders
 router.get("/orders", userController.getOrders);
-
-// Mark as Completed
 router.post("/orders/:id/complete", userController.markOrderCompleted);
+router.post("/orders/:id/pay", userController.payOrder); // NEW
 
 module.exports = router;

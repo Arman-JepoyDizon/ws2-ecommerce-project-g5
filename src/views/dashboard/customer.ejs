@@ -7,6 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" type="image/png" href="/img/OnlyFreds_logo.png"/>
   <style>
     .status-card {
         transition: all 0.2s;
@@ -55,9 +56,9 @@
             <a href="/user/orders" class="text-decoration-none small fw-bold">View Purchase History ></a>
         </div>
         <div class="card-body p-4 pt-0">
-            <div class="row text-center g-3">
-                <div class="col-6 col-md-2">
-                    <a href="/user/orders#to_pay" class="status-card p-3 d-block rounded-3">
+            <div class="row text-center g-4">
+                <div class="col-6 col-md-3">
+                    <a href="/user/orders?status=to_pay" class="status-card p-3 d-block rounded-3">
                         <span class="icon-badge">💳</span>
                         <div class="small fw-bold">To Pay</div>
                         <% if (statusCounts.to_pay > 0) { %>
@@ -65,8 +66,8 @@
                         <% } %>
                     </a>
                 </div>
-                <div class="col-6 col-md-2">
-                    <a href="/user/orders#to_ship" class="status-card p-3 d-block rounded-3">
+                <div class="col-6 col-md-3">
+                    <a href="/user/orders?status=to_ship" class="status-card p-3 d-block rounded-3">
                         <span class="icon-badge">📦</span>
                         <div class="small fw-bold">To Ship</div>
                         <% if (statusCounts.to_ship > 0) { %>
@@ -74,8 +75,8 @@
                         <% } %>
                     </a>
                 </div>
-                <div class="col-6 col-md-2">
-                    <a href="/user/orders#to_receive" class="status-card p-3 d-block rounded-3">
+                <div class="col-6 col-md-3">
+                    <a href="/user/orders?status=to_receive" class="status-card p-3 d-block rounded-3">
                         <span class="icon-badge">🚚</span>
                         <div class="small fw-bold">To Receive</div>
                         <% if (statusCounts.to_receive > 0) { %>
@@ -83,22 +84,10 @@
                         <% } %>
                     </a>
                 </div>
-                <div class="col-6 col-md-2">
-                    <a href="/user/orders#completed" class="status-card p-3 d-block rounded-3">
+                <div class="col-6 col-md-3">
+                    <a href="/user/orders?status=completed" class="status-card p-3 d-block rounded-3">
                         <span class="icon-badge">⭐</span>
                         <div class="small fw-bold">Completed</div>
-                    </a>
-                </div>
-                <div class="col-6 col-md-2">
-                    <a href="/user/orders#cancelled" class="status-card p-3 d-block rounded-3">
-                        <span class="icon-badge">🚫</span>
-                        <div class="small fw-bold">Cancelled</div>
-                    </a>
-                </div>
-                <div class="col-6 col-md-2">
-                    <a href="/user/orders#refund" class="status-card p-3 d-block rounded-3">
-                        <span class="icon-badge">↩️</span>
-                        <div class="small fw-bold">Return</div>
                     </a>
                 </div>
             </div>

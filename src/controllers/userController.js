@@ -1,4 +1,4 @@
-// src/controllers/userController.js
+const { v4: uuidv4 } = require("uuid");
 
 // GET /user/profile
 exports.getProfile = async (req, res) => {
@@ -6,10 +6,8 @@ exports.getProfile = async (req, res) => {
   const user = req.session.user;
 
   try {
-    // Fetch fresh user data
     const userData = await db.collection("users").findOne({ userId: user.userId });
 
-    // FIX: Ensure 'name' property exists for the navbar to display correctly
     if (userData) {
         userData.name = userData.firstName;
     }
@@ -71,8 +69,11 @@ exports.getOrders = async (req, res) => {
     });
 
     res.render("dashboard/user/orders", {
-      user, // This uses req.session.user, so 'name' is already there
-      ordersByStatus
+      user,
+      ordersByStatus,
+      // FIX: Pass success/error messages from URL query to the view
+      success: req.query.success || null,
+      error: req.query.error || null
     });
   } catch (err) {
     console.error("Get user orders error:", err);
@@ -88,8 +89,6 @@ exports.markOrderCompleted = async (req, res) => {
 
   try {
     const now = new Date();
-
-    // Verify ownership
     const order = await db.collection("orders").findOne({ orderId: id, userId: user.userId });
     if (!order) return res.redirect("/user/orders");
 
@@ -116,5 +115,48 @@ exports.markOrderCompleted = async (req, res) => {
   } catch (err) {
     console.error("Complete order error:", err);
     res.redirect("/user/orders?error=Failed to update order");
+  }
+};
+
+// POST /user/orders/:id/pay
+exports.payOrder = async (req, res) => {
+  const db = req.app.locals.db;
+  const user = req.session.user;
+  const { id } = req.params;
+  const { paymentMethod } = req.body;
+
+  try {
+    const now = new Date();
+    const order = await db.collection("orders").findOne({ orderId: id, userId: user.userId });
+    
+    if (!order) {
+        return res.redirect("/user/orders?error=Order not found");
+    }
+
+    await db.collection("orders").updateOne(
+      { orderId: id },
+      { 
+        $set: { 
+            orderStatus: "to_ship", 
+            paymentMethod: paymentMethod,
+            paidAt: now,
+            updatedAt: now 
+        },
+        $push: {
+            history: {
+                status: "to_ship",
+                label: `Payment confirmed via ${paymentMethod}`,
+                updatedBy: "Customer",
+                timestamp: now
+            }
+        }
+      }
+    );
+
+    res.redirect("/user/orders?success=Payment successful! Order is now being prepared.");
+
+  } catch (err) {
+    console.error("Payment error:", err);
+    res.redirect("/user/orders?error=Payment failed");
   }
 };

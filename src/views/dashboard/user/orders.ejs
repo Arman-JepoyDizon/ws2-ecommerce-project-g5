@@ -16,21 +16,31 @@
         <a href="/dashboard/customer" class="btn btn-outline-secondary rounded-pill">Back to Dashboard</a>
     </div>
 
+    <% if (typeof success !== 'undefined' && success) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <%= success %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <%= error %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <% } %>
+
     <ul class="nav nav-pills mb-4 gap-2" id="pills-tab" role="tablist">
       <li class="nav-item">
-        <a class="nav-link active rounded-pill" id="pills-topay-tab" data-bs-toggle="pill" href="#pills-topay">To Pay</a>
+        <a class="nav-link active rounded-pill" id="pills-topay-tab" data-bs-toggle="pill" href="#pills-topay" role="tab">To Pay</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link rounded-pill" id="pills-toship-tab" data-bs-toggle="pill" href="#pills-toship">To Ship</a>
+        <a class="nav-link rounded-pill" id="pills-toship-tab" data-bs-toggle="pill" href="#pills-toship" role="tab">To Ship</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link rounded-pill" id="pills-toreceive-tab" data-bs-toggle="pill" href="#pills-toreceive">To Receive</a>
+        <a class="nav-link rounded-pill" id="pills-toreceive-tab" data-bs-toggle="pill" href="#pills-toreceive" role="tab">To Receive</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link rounded-pill" id="pills-completed-tab" data-bs-toggle="pill" href="#pills-completed">Completed</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link rounded-pill" id="pills-cancelled-tab" data-bs-toggle="pill" href="#pills-cancelled">Cancelled</a>
+        <a class="nav-link rounded-pill" id="pills-completed-tab" data-bs-toggle="pill" href="#pills-completed" role="tab">Completed</a>
       </li>
     </ul>
 
@@ -41,13 +51,12 @@
             { id: 'topay', key: 'to_pay', label: 'To Pay' },
             { id: 'toship', key: 'to_ship', label: 'To Ship' },
             { id: 'toreceive', key: 'to_receive', label: 'To Receive' },
-            { id: 'completed', key: 'completed', label: 'Completed' },
-            { id: 'cancelled', key: 'cancelled', label: 'Cancelled' }
+            { id: 'completed', key: 'completed', label: 'Completed' }
           ];
         %>
 
         <% tabs.forEach((tab, index) => { %>
-            <div class="tab-pane fade <%= index === 0 ? 'show active' : '' %>" id="pills-<%= tab.id %>">
+            <div class="tab-pane fade <%= index === 0 ? 'show active' : '' %>" id="pills-<%= tab.id %>" role="tabpanel">
                 <% if (ordersByStatus[tab.key].length === 0) { %>
                     <div class="text-center py-5 text-muted">
                         <div class="fs-1 mb-2">📭</div>
@@ -67,7 +76,8 @@
                             <div class="card-body">
                                 <% order.items.forEach(item => { %>
                                     <div class="d-flex align-items-center mb-3">
-                                        <img src="/img/OnlyFreds_logo.png" width="60" class="rounded border me-3"> <div>
+                                        <img src="/img/OnlyFreds_logo.png" width="60" class="rounded border me-3">
+                                        <div>
                                             <h6 class="mb-0 fw-bold"><%= item.name %></h6>
                                             <small class="text-muted">x<%= item.quantity %></small>
                                         </div>
@@ -79,12 +89,17 @@
                                 <hr>
                                 <div class="d-flex justify-content-between align-items-center">
                                     
-                                    <% if (order.orderStatus === 'to_receive') { %>
+                                    <% if (order.orderStatus === 'to_pay') { %>
+                                        <button class="btn btn-primary rounded-pill fw-bold btn-sm pay-btn" data-id="<%= order.orderId %>" data-total="<%= order.totalAmount %>">
+                                            Pay Now 💳
+                                        </button>
+                                    <% } else if (order.orderStatus === 'to_receive') { %>
                                         <form action="/user/orders/<%= order.orderId %>/complete" method="POST" onsubmit="return confirm('Confirm that you have received this order?');">
                                             <button type="submit" class="btn btn-primary rounded-pill fw-bold btn-sm">Order Received</button>
                                         </form>
                                     <% } else { %>
-                                        <div></div> <% } %>
+                                        <div></div> 
+                                    <% } %>
 
                                     <div class="d-flex align-items-center">
                                         <span class="me-2">Order Total:</span>
@@ -102,7 +117,94 @@
 
   </div>
 
+  <div class="modal fade" id="payModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title fw-bold">Choose Payment Method</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+            <p class="text-muted mb-4">
+                Total to pay: <strong class="text-primary fs-5" id="payModalTotal">₱0.00</strong>
+            </p>
+            
+            <form id="payForm" method="POST">
+                <div class="d-grid gap-3">
+                    <input type="radio" class="btn-check" name="paymentMethod" id="option1" value="Cash on Delivery" required>
+                    <label class="btn btn-outline-secondary rounded-3 text-start p-3 fw-bold" for="option1">
+                        💵 Cash on Delivery
+                    </label>
+
+                    <input type="radio" class="btn-check" name="paymentMethod" id="option2" value="E-Wallet (GCash/Maya)">
+                    <label class="btn btn-outline-secondary rounded-3 text-start p-3 fw-bold" for="option2">
+                        📱 E-Wallet (GCash/Maya)
+                    </label>
+
+                    <input type="radio" class="btn-check" name="paymentMethod" id="option3" value="Bank Transfer">
+                    <label class="btn btn-outline-secondary rounded-3 text-start p-3 fw-bold" for="option3">
+                        🏦 Bank Transfer
+                    </label>
+                </div>
+
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-primary rounded-pill btn-lg fw-bold shadow-sm">
+                        Confirm Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <%- include("../../partials/footer") %>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Tab Logic
+        const params = new URLSearchParams(window.location.search);
+        const status = params.get('status');
+        
+        if (status) {
+            const tabMap = {
+                'to_pay': 'pills-topay-tab',
+                'to_ship': 'pills-toship-tab',
+                'to_receive': 'pills-toreceive-tab',
+                'completed': 'pills-completed-tab'
+            };
+            const tabId = tabMap[status];
+            if (tabId) {
+                const tabTrigger = document.getElementById(tabId);
+                if (tabTrigger) {
+                    const tab = new bootstrap.Tab(tabTrigger);
+                    tab.show();
+                }
+            }
+        }
+
+        // 2. Payment Modal Logic
+        const payBtns = document.querySelectorAll('.pay-btn');
+        const payModal = new bootstrap.Modal(document.getElementById('payModal'));
+        const payForm = document.getElementById('payForm');
+        const payModalTotal = document.getElementById('payModalTotal');
+
+        payBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderId = this.dataset.id;
+                const total = parseFloat(this.dataset.total).toFixed(2);
+                
+                // Set Form Action Dynamically
+                payForm.action = `/user/orders/${orderId}/pay`;
+                
+                // Set Total Text
+                payModalTotal.textContent = `₱${total}`;
+
+                payModal.show();
+            });
+        });
+    });
+  </script>
 </body>
 </html>
