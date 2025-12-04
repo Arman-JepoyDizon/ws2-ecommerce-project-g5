@@ -35,13 +35,19 @@
                 <tbody>
                     <% if (orders && orders.length > 0) { %>
                         <% orders.forEach(order => { %>
-                        <tr>
-                            <td class="ps-4 font-monospace small"><%= order.orderId.substring(0, 8) %>...</td>
+                        <tr style="cursor: pointer;" onclick="window.location='/dashboard/admin/orders/<%= order.orderId %>'">
+                            <td class="ps-4 font-monospace small text-primary"><%= order.orderId.substring(0, 8) %>...</td>
                             <td><%= order.userEmail %></td>
-                            <td class="fw-bold text-primary">₱<%= order.totalAmount.toFixed(2) %></td>
+                            <td class="fw-bold text-success">₱<%= order.totalAmount.toFixed(2) %></td>
                             <td>
-                                <span class="badge rounded-pill bg-warning text-dark border border-warning">
-                                    <%= order.orderStatus %>
+                                <% 
+                                    let badgeClass = 'bg-secondary';
+                                    if(order.orderStatus === 'completed') badgeClass = 'bg-success';
+                                    if(order.orderStatus === 'cancelled') badgeClass = 'bg-danger';
+                                    if(order.orderStatus === 'to_pay' || order.orderStatus === 'to_ship') badgeClass = 'bg-warning text-dark';
+                                %>
+                                <span class="badge rounded-pill <%= badgeClass %>">
+                                    <%= order.orderStatus.replace('_', ' ').toUpperCase() %>
                                 </span>
                             </td>
                             <td class="text-muted small">

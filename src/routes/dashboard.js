@@ -12,4 +12,10 @@ router.get("/admin", ensureAuth, ensureAdmin, dashboardController.getAdminDashbo
 // Admin Orders List
 router.get("/admin/orders", ensureAuth, ensureAdmin, dashboardController.getAdminOrders);
 
+// Admin Order Detail
+router.get("/admin/orders/:id", ensureAuth, ensureAdmin, dashboardController.getAdminOrderDetail);
+
+//Status Update
+router.post("/admin/orders/:id/status", ensureAuth, ensureAdmin, dashboardController.updateOrderStatus);
+
 module.exports = router;

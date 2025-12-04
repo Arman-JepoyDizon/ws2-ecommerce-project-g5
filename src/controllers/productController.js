@@ -1,12 +1,27 @@
 const { v4: uuidv4 } = require("uuid");
 
-// List all products
+// List all products (With Search & Filter)
 exports.getList = async (req, res) => {
   const db = req.app.locals.db;
+  const { search, category } = req.query;
   
-  const products = await db.collection("products").find().toArray();
+  // 1. Build Query
+  let query = {};
+
+  if (search) {
+    // Case-insensitive search for name
+    query.name = { $regex: search, $options: "i" };
+  }
+
+  if (category) {
+    query.categoryId = category;
+  }
+  
+  // 2. Fetch Data
+  const products = await db.collection("products").find(query).toArray();
   const categories = await db.collection("categories").find().toArray();
   
+  // Create a map for quick lookup: categoryId -> categoryName
   const categoryMap = {};
   categories.forEach(cat => {
     categoryMap[cat.categoryId] = cat.name;
@@ -15,8 +30,12 @@ exports.getList = async (req, res) => {
   res.render("dashboard/products/index", {
     user: req.session.user,
     products,
+    categories, // Pass categories for the filter dropdown
     categoryMap,
-    success: req.query.success || null
+    search: search || "",      // Keep search term in input
+    selectedCategory: category || "", // Keep category selected
+    success: req.query.success || null,
+    error: req.query.error || null
   });
 };
 
@@ -33,7 +52,7 @@ exports.getCreate = async (req, res) => {
   });
 };
 
-// Helper to parse variants from body
+// Helper to parse variants
 function parseVariants(body) {
     let variants = [];
     if (body.hasVariants === 'on') {
@@ -50,14 +69,13 @@ function parseVariants(body) {
                 }
             });
         } else if (names && prices) {
-            // Single variant case
              variants.push({ name: names, price: parseFloat(prices) });
         }
     }
     return variants;
 }
 
-// Handle Create Submission
+// Handle Create Submission (With Validation)
 exports.postCreate = async (req, res) => {
   const db = req.app.locals.db;
   const { name, description, price, categoryId, imgUrl, hasVariants } = req.body;
@@ -69,14 +87,18 @@ exports.postCreate = async (req, res) => {
       finalPrice = Math.min(...variants.map(v => v.price));
   }
 
-
-  if (!name || (!hasVariants && isNaN(finalPrice)) || !categoryId) {
+  // Validation
+  let error = null;
+  if (!name || !categoryId) error = "Name and Category are required.";
+  else if (!hasVariants && (isNaN(finalPrice) || finalPrice < 0)) error = "Price must be a valid positive number.";
+  
+  if (error) {
     const categories = await db.collection("categories").find().toArray();
     return res.render("dashboard/products/form", {
       user: req.session.user,
-      product: { ...req.body, variants }, 
+      product: { ...req.body, variants },
       categories,
-      error: "Name, Category, and Price are required."
+      error
     });
   }
 
@@ -93,7 +115,7 @@ exports.postCreate = async (req, res) => {
   };
 
   await db.collection("products").insertOne(newProduct);
-  res.redirect("/dashboard/admin/products?success=Product Created");
+  res.redirect("/dashboard/admin/products?success=Product Created Successfully");
 };
 
 // Show Edit Form
@@ -116,7 +138,7 @@ exports.getEdit = async (req, res) => {
   });
 };
 
-// Handle Edit Submission
+// Handle Edit Submission (With Validation)
 exports.postEdit = async (req, res) => {
   const db = req.app.locals.db;
   const productId = req.params.id;
@@ -127,6 +149,13 @@ exports.postEdit = async (req, res) => {
   let finalPrice = parseFloat(price);
   if (hasVariants === 'on' && variants.length > 0) {
       finalPrice = Math.min(...variants.map(v => v.price));
+  }
+
+  // Validation
+  if (!name || (!hasVariants && (isNaN(finalPrice) || finalPrice < 0))) {
+      // For edit, it's simpler to redirect with error than re-render entire state manually
+      // or re-fetch product. A quick redirect is often acceptable for admin panels.
+      return res.redirect(`/dashboard/admin/products/edit/${productId}?error=Invalid Input`);
   }
 
   await db.collection("products").updateOne(
@@ -145,14 +174,31 @@ exports.postEdit = async (req, res) => {
     }
   );
 
-  res.redirect("/dashboard/admin/products?success=Product Updated");
+  res.redirect("/dashboard/admin/products?success=Product Updated Successfully");
 };
 
-// Handle Delete
+// Handle Delete (With Safe Delete Check)
 exports.postDelete = async (req, res) => {
   const db = req.app.locals.db;
   const productId = req.params.id;
 
-  await db.collection("products").deleteOne({ productId });
-  res.redirect("/dashboard/admin/products?success=Product Deleted");
+  try {
+    // 1. Check if product is in any order
+    // We check the 'items.productId' field in the orders collection
+    const usageCount = await db.collection("orders").countDocuments({
+        "items.productId": productId
+    });
+
+    if (usageCount > 0) {
+        return res.redirect(`/dashboard/admin/products?error=Cannot delete this product because it is already used in ${usageCount} orders.`);
+    }
+
+    // 2. If safe, delete
+    await db.collection("products").deleteOne({ productId });
+    res.redirect("/dashboard/admin/products?success=Product Deleted Successfully");
+
+  } catch (err) {
+    console.error("Delete error:", err);
+    res.redirect("/dashboard/admin/products?error=An error occurred while deleting.");
+  }
 };

@@ -79,3 +79,42 @@ exports.getOrders = async (req, res) => {
     res.status(500).render("500", { title: "Server Error" });
   }
 };
+
+// POST /user/orders/:id/complete
+exports.markOrderCompleted = async (req, res) => {
+  const db = req.app.locals.db;
+  const user = req.session.user;
+  const { id } = req.params;
+
+  try {
+    const now = new Date();
+
+    // Verify ownership
+    const order = await db.collection("orders").findOne({ orderId: id, userId: user.userId });
+    if (!order) return res.redirect("/user/orders");
+
+    await db.collection("orders").updateOne(
+      { orderId: id },
+      { 
+        $set: { 
+            orderStatus: "completed", 
+            updatedAt: now 
+        },
+        $push: {
+            history: {
+                status: "completed",
+                label: "Order Received & Completed",
+                updatedBy: "Customer",
+                timestamp: now
+            }
+        }
+      }
+    );
+
+    res.redirect("/user/orders?success=Order marked as completed");
+
+  } catch (err) {
+    console.error("Complete order error:", err);
+    res.redirect("/user/orders?error=Failed to update order");
+  }
+};

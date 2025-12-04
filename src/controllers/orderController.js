@@ -53,14 +53,25 @@ exports.postCheckout = async (req, res) => {
     const totalAmount = itemsToOrder.reduce((sum, item) => sum + item.subtotal, 0);
 
     // 4. Create Order
+// 4. Create Order
+    const now = new Date();
     const newOrder = {
       orderId: uuidv4(),
       userId: user.userId,
       items: itemsToOrder,
       totalAmount: totalAmount,
       orderStatus: "to_pay",
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: now,
+      updatedAt: now,
+      // NEW: Initialize History
+      history: [
+        {
+            status: "to_pay",
+            label: "Order Placed",
+            updatedBy: "Customer",
+            timestamp: now
+        }
+      ]
     };
 
     await ordersCollection.insertOne(newOrder);

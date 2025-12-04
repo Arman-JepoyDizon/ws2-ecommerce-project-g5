@@ -77,9 +77,19 @@
                                     </div>
                                 <% }) %>
                                 <hr>
-                                <div class="d-flex justify-content-end align-items-center">
-                                    <span class="me-2">Order Total:</span>
-                                    <h4 class="text-primary fw-bold mb-0">₱<%= order.totalAmount.toFixed(2) %></h4>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    
+                                    <% if (order.orderStatus === 'to_receive') { %>
+                                        <form action="/user/orders/<%= order.orderId %>/complete" method="POST" onsubmit="return confirm('Confirm that you have received this order?');">
+                                            <button type="submit" class="btn btn-primary rounded-pill fw-bold btn-sm">Order Received</button>
+                                        </form>
+                                    <% } else { %>
+                                        <div></div> <% } %>
+
+                                    <div class="d-flex align-items-center">
+                                        <span class="me-2">Order Total:</span>
+                                        <h4 class="text-primary fw-bold mb-0">₱<%= order.totalAmount.toFixed(2) %></h4>
+                                    </div>
                                 </div>
                             </div>
                         </div>

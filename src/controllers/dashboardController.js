@@ -1,16 +1,18 @@
-// GET /dashboard/customer
+// src/controllers/dashboardController.js
+
+// 1. Customer Dashboard
 exports.getCustomerDashboard = async (req, res) => {
   const user = req.session.user;
   const db = req.app.locals.db;
   const ordersCollection = db.collection("orders");
 
   try {
-    // 1. Fetch all orders for this user
+    // Fetch all orders for this user
     const userOrders = await ordersCollection
       .find({ userId: user.userId })
       .toArray();
 
-    // 2. Calculate Counts per Status
+    // Calculate Counts per Status
     const statusCounts = {
       to_pay: 0,
       to_ship: 0,
@@ -41,6 +43,7 @@ exports.getCustomerDashboard = async (req, res) => {
   }
 };
 
+// 2. Admin Dashboard
 exports.getAdminDashboard = async (req, res) => {
   const user = req.session.user;
   if (user.role !== "admin") {
@@ -58,6 +61,7 @@ exports.getAdminDashboard = async (req, res) => {
   });
 };
 
+// 3. Admin Orders List
 exports.getAdminOrders = async (req, res) => {
   const db = req.app.locals.db;
   const ordersCollection = db.collection("orders");
@@ -82,5 +86,78 @@ exports.getAdminOrders = async (req, res) => {
   } catch (err) {
     console.error("Error loading admin orders:", err);
     res.status(500).send("Error loading orders");
+  }
+};
+
+// 4. Admin Order Detail View
+exports.getAdminOrderDetail = async (req, res) => {
+  const db = req.app.locals.db;
+  const { id } = req.params;
+
+  try {
+    // Fetch Order
+    const order = await db.collection("orders").findOne({ orderId: id });
+    
+    if (!order) {
+        return res.redirect("/dashboard/admin/orders?error=Order not found");
+    }
+
+    // Fetch Customer Details
+    const customer = await db.collection("users").findOne({ userId: order.userId });
+
+    res.render("dashboard/orders/detail", {
+      user: req.session.user, // The Admin
+      customer: customer || {}, // The Buyer
+      order,
+      success: req.query.success || null,
+      error: req.query.error || null
+    });
+
+  } catch (err) {
+    console.error("Get order detail error:", err);
+    res.status(500).send("Server Error");
+  }
+};
+
+// 5. Update Order Status
+exports.updateOrderStatus = async (req, res) => {
+  const db = req.app.locals.db;
+  const { id } = req.params;
+  const { orderStatus } = req.body;
+
+  try {
+    const now = new Date();
+    
+    // Map status codes to readable labels
+    const statusLabels = {
+        to_pay: "To Pay",
+        to_ship: "To Ship",
+        to_receive: "To Receive",
+        completed: "Completed"
+    };
+
+    await db.collection("orders").updateOne(
+      { orderId: id },
+      { 
+        $set: { 
+            orderStatus: orderStatus,
+            updatedAt: now 
+        },
+        $push: {
+            history: {
+                status: orderStatus,
+                label: `Status updated to ${statusLabels[orderStatus] || orderStatus}`,
+                updatedBy: "Admin",
+                timestamp: now
+            }
+        }
+      }
+    );
+
+    res.redirect(`/dashboard/admin/orders/${id}?success=Status updated`);
+
+  } catch (err) {
+    console.error("Update status error:", err);
+    res.redirect(`/dashboard/admin/orders/${id}?error=Failed to update status`);
   }
 };

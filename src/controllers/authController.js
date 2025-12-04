@@ -120,24 +120,17 @@ exports.getLogin = (req, res) => {
   let error = null;
   let message = null;
 
-  if (req.query.reset === "success") {
-    message = "✅ Password has been reset successfully. You can now log in.";
-  }
+  if (req.query.reset === "success") message = "✅ Password has been reset successfully. You can now log in.";
+  if (req.query.logout === "inactive") message = "⚠️ You’ve been logged out due to inactivity. Please log in again.";
+  else if (req.query.logout === "manual") message = "✅ You have successfully logged out.";
 
-  if (req.query.logout === "inactive") {
-     message = "⚠️ You’ve been logged out due to inactivity. Please log in again.";
-  } else if (req.query.logout === "manual") {
-     message = "✅ You have successfully logged out.";
-  }
-
-  if (req.query.error) {
-    error = req.query.error;
-  }
+  if (req.query.error) error = req.query.error;
 
   res.render("auth/login", { 
     error: error,
     message: message, 
-    user: req.session.user || null
+    user: req.session.user || null,
+    banned: null // Add this
   });
 };
 
@@ -146,26 +139,55 @@ exports.postLogin = async (req, res) => {
   const db = req.app.locals.db;
   const users = db.collection("users");
   const token = req.body['cf-turnstile-response'];
-  const result = await verifyTurnstile(token, req.ip);
   
+  const result = await verifyTurnstile(token, req.ip);
   if (!result.success) {
-    return res.status(400).render('auth/login', { error: 'Verification failed. Please try again.', message: null });
+    return res.status(400).render('auth/login', { error: 'Verification failed. Please try again.', message: null, banned: null });
   }
+
   const { email, password } = req.body;
 
   const user = await users.findOne({ email });
-  if (!user) return res.render("auth/login", { error: "Invalid Credentials.", message: null });
+  if (!user) return res.render("auth/login", { error: "Invalid Credentials.", message: null, banned: null });
 
+  // --- BAN CHECK ---
+  if (user.accountStatus === "banned") {
+      const now = new Date();
+      const expiresAt = new Date(user.banDetails.expiresAt);
+
+      // Check if ban expired
+      if (now > expiresAt) {
+          // Auto unban
+          await users.updateOne(
+              { _id: user._id }, 
+              { $set: { accountStatus: "active" }, $unset: { banDetails: "" } }
+          );
+          // Continue to login...
+      } else {
+          // Still banned: Show modal on login page
+          return res.render("auth/login", { 
+              error: null,
+              message: null,
+              banned: {
+                  reason: user.banDetails.reason,
+                  expiresAt: expiresAt.toLocaleDateString()
+              }
+          });
+      }
+  }
+  // ----------------
+
+  // NOTE: Keep existing check for 'inactive' if you use it, otherwise just 'active' check
   if (user.accountStatus !== "active") {
-    return res.render("auth/login", { error: "Invalid Credentials.", message: null });
+    return res.render("auth/login", { error: "Account is not active.", message: null, banned: null });
   }
 
   if (!user.isEmailVerified) {
-    return res.render("auth/login", { error: "Invalid Credentials.", message: null });
+    return res.render("auth/login", { error: "Please verify your email.", message: null, banned: null });
   }
 
   const validPass = await bcrypt.compare(password, user.passwordHash);
-  if (!validPass) return res.render("auth/login", { error: "Invalid Credentials.", message: null });
+  if (!validPass) return res.render("auth/login", { error: "Invalid Credentials.", message: null, banned: null });
 
   // Set session
   req.session.user = {

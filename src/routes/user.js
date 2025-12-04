@@ -12,4 +12,7 @@ router.post("/profile", userController.updateProfile);
 // Orders
 router.get("/orders", userController.getOrders);
 
+// Mark as Completed
+router.post("/orders/:id/complete", userController.markOrderCompleted);
+
 module.exports = router;
