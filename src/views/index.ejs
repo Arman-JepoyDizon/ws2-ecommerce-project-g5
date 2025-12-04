@@ -76,24 +76,29 @@
             <% featuredProducts.forEach((product) => { %>
                 <div class="col-12 col-md-6 col-lg-4">
                     <div class="card h-100 border-0 shadow-sm card-hover rounded-4 overflow-hidden">
-                      <a href="/product/<%= product.productId %>" class="text-decoration-none text-reset h-100 d-flex flex-column">
-                        <img src="<%= product.imgUrl || '/img/OnlyFreds_logo.png' %>" class="card-img-top product-img-card" alt="<%= product.name %>">
-                        <div class="card-body text-center d-flex flex-column p-4">
-                            <h5 class="card-title fw-bold text-dark"><%= product.name %></h5>
-                            <p class="card-text text-muted small"><%= product.description %></p>
-                            
-                            <div class="mt-auto pt-3">
-                                <h4 class="fw-bold text-primary mb-3">
-                                    <% if (product.hasVariants) { %>
-                                        <small class="fs-6 text-muted">From</small> ₱<%= product.price.toFixed(2) %>
-                                    <% } else { %>
-                                        ₱<%= product.price.toFixed(2) %>
-                                    <% } %>
-                                </h4>
-                                <button class="btn btn-dark w-100 rounded-pill fw-bold" disabled>View Product</button>
+                        <a href="/product/<%= product.productId %>" class="text-decoration-none text-reset h-100 d-flex flex-column">
+                            <div class="position-relative">
+                                <span class="position-absolute top-0 start-0 badge bg-danger m-3 shadow-sm">
+                                    🔥 <%= product.unitsSold || 0 %> Sold
+                                </span>
+                                <img src="<%= product.imgUrl || '/img/OnlyFreds_logo.png' %>" class="card-img-top product-img-card" alt="<%= product.name %>">
                             </div>
-                        </div>
-                      </a>
+                            <div class="card-body text-center d-flex flex-column p-4">
+                                <h5 class="card-title fw-bold text-dark"><%= product.name %></h5>
+                                <p class="card-text text-muted small text-truncate"><%= product.description %></p>
+                                
+                                <div class="mt-auto pt-3">
+                                    <h4 class="fw-bold text-primary mb-3">
+                                        <% if (product.hasVariants) { %>
+                                            <small class="fs-6 text-muted">From</small> ₱<%= product.price.toFixed(2) %>
+                                        <% } else { %>
+                                            ₱<%= product.price.toFixed(2) %>
+                                        <% } %>
+                                    </h4>
+                                    <button class="btn btn-dark w-100 rounded-pill fw-bold">View Product</button>
+                                </div>
+                            </div>
+                        </a>
                     </div>
                 </div>
             <% }) %>
@@ -134,23 +139,23 @@
                                 <div class="row g-4">
                                     <% chunk.forEach(product => { %>
                                         <div class="col-12 col-md-4">
-                                            <div class="card h-100 border-0 shadow-sm bg-light rounded-4">
-                                              <a href="/product/<%= product.productId %>" class="text-decoration-none text-reset h-100 d-flex flex-column">
-                                                <div class="position-relative">
-                                                    <span class="position-absolute top-0 start-0 badge bg-success m-3">New</span>
-                                                    <img src="<%= product.imgUrl || '/img/OnlyFreds_logo.png' %>" class="card-img-top product-img-card bg-transparent" alt="<%= product.name %>">
-                                                </div>
-                                                <div class="card-body text-center p-4">
-                                                    <h5 class="fw-bold mb-1"><%= product.name %></h5>
-                                                    <p class="text-primary fw-bold mb-0">
-                                                        <% if (product.hasVariants) { %>
-                                                            <small class="text-muted">From</small> ₱<%= product.price.toFixed(2) %>
-                                                        <% } else { %>
-                                                            ₱<%= product.price.toFixed(2) %>
-                                                        <% } %>
-                                                    </p>
-                                                </div>
-                                              </a>
+                                            <div class="card h-100 border-0 shadow-sm bg-light rounded-4 card-hover">
+                                                <a href="/product/<%= product.productId %>" class="text-decoration-none text-reset h-100 d-flex flex-column">
+                                                    <div class="position-relative">
+                                                        <span class="position-absolute top-0 start-0 badge bg-success m-3">New</span>
+                                                        <img src="<%= product.imgUrl || '/img/OnlyFreds_logo.png' %>" class="card-img-top product-img-card bg-transparent" alt="<%= product.name %>">
+                                                    </div>
+                                                    <div class="card-body text-center p-4">
+                                                        <h5 class="fw-bold mb-1"><%= product.name %></h5>
+                                                        <p class="text-primary fw-bold mb-0">
+                                                            <% if (product.hasVariants) { %>
+                                                                <small class="text-muted">From</small> ₱<%= product.price.toFixed(2) %>
+                                                            <% } else { %>
+                                                                ₱<%= product.price.toFixed(2) %>
+                                                            <% } %>
+                                                        </p>
+                                                    </div>
+                                                </a>
                                             </div>
                                         </div>
                                     <% }) %>

@@ -13,11 +13,57 @@ exports.getIndex = async (req, res) => {
   try {
     const db = req.app.locals.db;
     const productsCollection = db.collection("products");
+    const ordersCollection = db.collection("orders");
 
-    // 1. Fetch Featured (Placeholder: First 3 products)
-    const featuredProducts = await productsCollection.find().limit(3).toArray();
+    // 1. Calculate Real Best Sellers from Orders
+    const orders = await ordersCollection.find().toArray();
+    const salesMap = {};
 
-    // 2. Fetch Newest (Sorted by Date Descending)
+    orders.forEach(order => {
+        if (order.items && Array.isArray(order.items)) {
+            order.items.forEach(item => {
+                salesMap[item.productId] = (salesMap[item.productId] || 0) + (item.quantity || 0);
+            });
+        }
+    });
+
+    // Get Top 3 Product IDs sorted by sales
+    const topProductIds = Object.keys(salesMap)
+        .sort((a, b) => salesMap[b] - salesMap[a])
+        .slice(0, 3);
+
+    let featuredProducts = [];
+
+    // Fetch details for the top sellers
+    if (topProductIds.length > 0) {
+        const topProducts = await productsCollection.find({ productId: { $in: topProductIds } }).toArray();
+        
+        // Map details back to the sorted ID list to preserve ranking order
+        featuredProducts = topProductIds.map(id => {
+            const product = topProducts.find(p => p.productId === id);
+            if (product) {
+                return { ...product, unitsSold: salesMap[id] };
+            }
+        }).filter(p => p); // Remove undefined if a product was deleted
+    }
+
+    // 2. Fallback: If less than 3 best sellers, fill with other products
+    if (featuredProducts.length < 3) {
+        const existingIds = featuredProducts.map(p => p.productId);
+        const fillerProducts = await productsCollection
+            .find({ productId: { $nin: existingIds } })
+            .limit(3 - featuredProducts.length)
+            .toArray();
+        
+        // Mark fillers as 0 sold (or whatever aggregate found)
+        fillerProducts.forEach(p => {
+            p.unitsSold = salesMap[p.productId] || 0;
+        });
+        
+        featuredProducts = [...featuredProducts, ...fillerProducts];
+    }
+
+    // 3. Fetch Newest (Sorted by Date Descending)
     const newestProducts = await productsCollection
       .find()
       .sort({ createdAt: -1 })
@@ -34,8 +80,6 @@ exports.getIndex = async (req, res) => {
     res.status(500).render("500", { title: "Server Error" });
   }
 };
-
-
 
 // --- PRODUCTS PAGE ---
 exports.getProducts = async (req, res) => {
@@ -63,6 +107,38 @@ exports.getProducts = async (req, res) => {
     });
   } catch (err) {
     console.error("Error fetching products:", err);
+    res.status(500).render("500", { title: "Server Error" });
+  }
+};
+
+// --- PRODUCT DETAIL PAGE ---
+exports.getProductDetail = async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const productId = req.params.id;
+
+    // 1. Fetch Product
+    const product = await db.collection("products").findOne({ productId });
+
+    if (!product) {
+      return res.status(404).render("404", { title: "Product Not Found" });
+    }
+
+    // 2. Fetch Category Name (for the badge)
+    let categoryName = "Uncategorized";
+    if (product.categoryId) {
+        const category = await db.collection("categories").findOne({ categoryId: product.categoryId });
+        if (category) categoryName = category.name;
+    }
+
+    res.render("product-detail", {
+      user: req.session.user || null,
+      product,
+      categoryName
+    });
+
+  } catch (err) {
+    console.error("Error fetching product detail:", err);
     res.status(500).render("500", { title: "Server Error" });
   }
 };
@@ -139,45 +215,13 @@ exports.getPrivacy = (req, res) => {
   res.render("privacy", { user: req.session.user || null });
 };
 
-// --- PRODUCT DETAIL PAGE ---
-exports.getProductDetail = async (req, res) => {
-  try {
-    const db = req.app.locals.db;
-    const productId = req.params.id;
-
-    // 1. Fetch Product
-    const product = await db.collection("products").findOne({ productId });
-
-    if (!product) {
-      return res.status(404).render("404", { title: "Product Not Found" });
-    }
-
-    // 2. Fetch Category Name (for the badge)
-    let categoryName = "Uncategorized";
-    if (product.categoryId) {
-        const category = await db.collection("categories").findOne({ categoryId: product.categoryId });
-        if (category) categoryName = category.name;
-    }
-
-    res.render("product-detail", {
-      user: req.session.user || null,
-      product,
-      categoryName
-    });
-
-  } catch (err) {
-    console.error("Error fetching product detail:", err);
-    res.status(500).render("500", { title: "Server Error" });
-  }
-};
-
-// --- SITEMAP.XML ---
+// --- SITEMAP ---
 exports.getSitemap = async (req, res) => {
   try {
     const db = req.app.locals.db;
     const baseUrl = process.env.BASE_URL || 'https://onlyfreds.fun';
 
-    // 1. Static Routes
+    // 1. Define Static Routes
     const urls = [
       { loc: '/', changefreq: 'daily', priority: 1.0 },
       { loc: '/products', changefreq: 'daily', priority: 0.8 },
@@ -189,7 +233,7 @@ exports.getSitemap = async (req, res) => {
       { loc: '/auth/register', changefreq: 'monthly', priority: 0.4 },
     ];
 
-    // 2. Categories
+    // 2. Add Dynamic Category Routes
     const categories = await db.collection("categories").find().toArray();
     categories.forEach(cat => {
       urls.push({
@@ -199,7 +243,7 @@ exports.getSitemap = async (req, res) => {
       });
     });
 
-    // 3. Products
+    // 3. Add Dynamic Product Routes
     const products = await db.collection("products").find().toArray();
     products.forEach(prod => {
       urls.push({
@@ -223,19 +267,19 @@ exports.getSitemap = async (req, res) => {
 
     xml += '</urlset>';
 
-    res.header('Content-Type', 'text/xml'); // Changed to text/xml for better compatibility
+    res.header('Content-Type', 'text/xml');
     res.send(xml);
 
   } catch (err) {
-    console.error("Sitemap error:", err);
+    console.error("Sitemap generation error:", err);
     res.status(500).end();
   }
 };
 
 // --- ROBOTS.TXT ---
 exports.getRobots = (req, res) => {
-  const baseUrl = process.env.BASE_URL || 'https://www.onlyfreds.fun';
-const content = `User-agent: *
+  const baseUrl = process.env.BASE_URL || 'https://onlyfreds.fun';
+  const content = `User-agent: *
 Allow: /
 Disallow: /dashboard/
 Disallow: /auth/verify/
